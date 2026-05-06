@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
 <meta charset="UTF-8">
@@ -6,230 +7,349 @@
 <title>Market Target Engine</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #03070e; --bg1: #07101d; --bg2: #0b1829; --bg3: #0f2038;
-  --border: #0f2040; --border2: #1a3a6a;
-  --accent: #1a6fff; --up: #00e87a; --dn: #ff3b5c; --warn: #ffb500;
-  --text: #c5d8f5; --muted: #2e486e; --dim: #162035;
-  --mono: 'Space Mono', monospace; --sans: 'Sarabun', sans-serif;
+:root{
+  --bg:#03070e;--bg1:#07101d;--bg2:#0b1829;--bg3:#0f2038;
+  --border:#0f2040;--border2:#1a3a6a;
+  --accent:#1a6fff;--up:#00e87a;--dn:#ff3b5c;--warn:#ffb500;
+  --text:#c5d8f5;--muted:#2e486e;--dim:#162035;
+  --mono:'Space Mono',monospace;--sans:'Sarabun',sans-serif;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; }
-body::before {
-  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
-  background: linear-gradient(var(--border) 1px, transparent 1px) 0 0 / 44px 44px,
-              linear-gradient(90deg, var(--border) 1px, transparent 1px) 0 0 / 44px 44px;
-  opacity: .18;
-}
-.wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 18px 14px 60px; }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(var(--border) 1px,transparent 1px) 0 0/44px 44px,
+             linear-gradient(90deg,var(--border) 1px,transparent 1px) 0 0/44px 44px;opacity:.18}
+.wrap{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:18px 14px 60px}
 
-/* ─── HEADER ─── */
-header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap;
-  gap: 12px; border-bottom: 1px solid var(--border2); padding-bottom: 16px; margin-bottom: 18px; }
-.h-brand { display: flex; flex-direction: column; gap: 3px; }
-.h-tag { font-family: var(--mono); font-size: 8px; letter-spacing: .35em; color: var(--accent); text-transform: uppercase; }
-.h-title { font-family: var(--mono); font-size: 20px; font-weight: 700; color: #fff; }
-.h-sub { font-size: 11px; color: var(--muted); }
-.h-clock-block { text-align: right; }
-.h-clock { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #fff; display: block; }
-.h-date  { font-family: var(--mono); font-size: 9px; color: var(--muted); display: block; margin-top: 2px; }
+/* HEADER */
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;
+border-bottom:1px solid var(–border2);padding-bottom:16px;margin-bottom:18px}
+.h-tag{font-family:var(–mono);font-size:8px;letter-spacing:.35em;color:var(–accent);display:block;margin-bottom:3px}
+.h-title{font-family:var(–mono);font-size:20px;font-weight:700;color:#fff;display:block;margin-bottom:3px}
+.h-sub{font-size:11px;color:var(–muted);display:block}
+.h-clock{font-family:var(–mono);font-size:22px;font-weight:700;color:#fff;display:block;text-align:right}
+.h-date{font-family:var(–mono);font-size:9px;color:var(–muted);display:block;text-align:right;margin-top:2px}
 
-/* ─── API KEY BANNER ─── */
-#keyBanner {
-  background: linear-gradient(135deg, #0a1e3a, #0c2248);
-  border: 1px solid var(--border2); border-radius: 12px;
-  padding: 16px 18px; margin-bottom: 18px; display: flex;
-  flex-wrap: wrap; gap: 10px; align-items: flex-end;
-}
-.key-info { flex: 1; min-width: 200px; }
-.key-title { font-family: var(--mono); font-size: 11px; color: #fff; margin-bottom: 4px; }
-.key-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
-.key-desc a { color: var(--accent); text-decoration: none; }
-.key-desc a:hover { text-decoration: underline; }
-.key-input-row { display: flex; gap: 8px; align-items: center; flex: 2; min-width: 260px; }
-#apiKeyInput {
-  flex: 1; padding: 8px 12px; background: var(--bg);
-  border: 1px solid var(--border2); border-radius: 8px;
-  color: var(--text); font-family: var(--mono); font-size: 11px; outline: none;
-}
-#apiKeyInput:focus { border-color: var(--accent); }
-#saveKeyBtn {
-  padding: 8px 14px; border-radius: 8px; border: 1px solid var(--accent);
-  background: #1a3a7a; color: #7ab8ff; font-family: var(--mono);
-  font-size: 11px; cursor: pointer; white-space: nowrap; transition: all .15s;
-}
-#saveKeyBtn:hover { background: #1a5aaa; }
-.key-ok { display: flex; align-items: center; gap: 8px; flex: 1; }
-.key-ok-text { font-family: var(--mono); font-size: 11px; color: var(--up); }
-#changeKeyBtn { font-size: 10px; color: var(--muted); background: none; border: none; cursor: pointer; font-family: var(--mono); text-decoration: underline; }
+/* SETUP BANNER */
+#setupBanner{background:linear-gradient(135deg,#071a38,#0a2248);border:1px solid var(–border2);
+border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.setup-title{font-family:var(–mono);font-size:12px;color:#fff;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.setup-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.step{display:flex;gap:10px;align-items:flex-start}
+.step-num{width:20px;height:20px;border-radius:50%;background:var(–accent);color:#fff;
+font-family:var(–mono);font-size:10px;font-weight:700;display:flex;align-items:center;
+justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:11px;color:var(–text);line-height:1.6}
+.step-text a{color:#6fb3ff;text-decoration:none}
+.step-text a:hover{text-decoration:underline}
+.step-text code{background:var(–bg);border:1px solid var(–border2);border-radius:4px;
+padding:1px 6px;font-family:var(–mono);font-size:10px;color:var(–warn)}
+.url-input-row{display:flex;gap:8px;flex-wrap:wrap}
+#sheetUrl{flex:1;min-width:200px;padding:9px 12px;background:var(–bg);
+border:1px solid var(–border2);border-radius:8px;color:var(–text);
+font-family:var(–mono);font-size:11px;outline:none}
+#sheetUrl:focus{border-color:var(–accent)}
+#saveUrl{padding:9px 16px;border-radius:8px;border:1px solid var(–accent);
+background:#1a3a7a;color:#7ab8ff;font-family:var(–mono);font-size:11px;cursor:pointer;
+white-space:nowrap;transition:all .15s}
+#saveUrl:hover{background:#1a5aaa}
+#urlOkRow{display:none;align-items:center;gap:10px;margin-top:10px}
+.url-ok-text{font-family:var(–mono);font-size:11px;color:var(–up)}
+#changeUrl{font-size:10px;color:var(–muted);background:none;border:none;cursor:pointer;
+font-family:var(–mono);text-decoration:underline}
 
-/* ─── TOOLBAR ─── */
-.toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
-.tabs { display: flex; gap: 5px; flex-wrap: wrap; }
-.tab { padding: 6px 13px; border-radius: 7px; border: 1px solid var(--border);
-  background: var(--bg1); color: var(--muted); font-family: var(--mono);
-  font-size: 10px; cursor: pointer; transition: all .15s; }
-.tab:hover { border-color: var(--border2); color: var(--text); }
-.tab.active { background: var(--bg3); border-color: var(--accent); color: #6fb3ff; }
-.rBtn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px;
-  border: 1px solid var(--border2); background: var(--bg2); color: var(--text);
-  font-family: var(--mono); font-size: 10px; cursor: pointer; transition: all .15s; }
-.rBtn:hover { border-color: var(--accent); color: #6fb3ff; }
-.rBtn:disabled { opacity: .4; cursor: not-allowed; }
+/* TOOLBAR */
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.tabs{display:flex;gap:5px;flex-wrap:wrap}
+.tab{padding:6px 13px;border-radius:7px;border:1px solid var(–border);background:var(–bg1);
+color:var(–muted);font-family:var(–mono);font-size:10px;cursor:pointer;transition:all .15s}
+.tab:hover{border-color:var(–border2);color:var(–text)}
+.tab.active{background:var(–bg3);border-color:var(–accent);color:#6fb3ff}
+.rBtn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;
+border:1px solid var(–border2);background:var(–bg2);color:var(–text);
+font-family:var(–mono);font-size:10px;cursor:pointer;transition:all .15s}
+.rBtn:hover{border-color:var(–accent);color:#6fb3ff}
+.rBtn:disabled{opacity:.4;cursor:not-allowed}
 
-/* ─── ANIMATIONS ─── */
-@keyframes spin    { to { transform: rotate(360deg); } }
-@keyframes fadeUp  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse   { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+@keyframes spin  {to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse {0%,100%{opacity:1}50%{opacity:.2}}
 
-/* ─── STATUS ─── */
-.statusBar { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px; }
-.sDot { width: 5px; height: 5px; border-radius: 50%; background: var(--up); animation: pulse 1.5s infinite; }
+.statusBar{font-family:var(–mono);font-size:9px;color:var(–muted);margin-bottom:14px;
+display:flex;align-items:center;gap:8px}
+.sDot{width:5px;height:5px;border-radius:50%;background:var(–up);animation:pulse 1.5s infinite}
 
-/* ─── CARD GRID ─── */
-.cards { display: grid; grid-template-columns: 1fr; gap: 14px; }
-@media(min-width: 620px) { .cards { grid-template-columns: 1fr 1fr; } }
+/* GRID */
+.cards{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:620px){.cards{grid-template-columns:1fr 1fr}}
 
-/* ─── CARD ─── */
-.card { background: var(--bg1); border: 1px solid var(--border); border-radius: 14px;
-  padding: 16px; animation: fadeUp .3s ease; transition: border-color .2s; }
-.card:hover { border-color: var(--border2); }
+/* CARD */
+.card{background:var(–bg1);border:1px solid var(–border);border-radius:14px;
+padding:16px;animation:fadeUp .3s ease;transition:border-color .2s}
+.card:hover{border-color:var(–border2)}
 
 /* session badge */
-.sBadge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px;
-  font-size: 9px; font-family: var(--mono); font-weight: 700; border: 1px solid; white-space: nowrap; }
-.sBadge.open    { background: #00e87a12; border-color: #00e87a55; color: var(--up); }
-.sBadge.closed  { background: #ff3b5c0e; border-color: #ff3b5c44; color: var(--dn); }
-.sBadge.brk     { background: #ffb50012; border-color: #ffb50055; color: var(--warn); }
-.sBadge.pre     { background: #1a6fff12; border-color: #1a6fff55; color: var(--accent); }
-.sBadge.holiday { background: #44444412; border-color: #44444455; color: #888; }
-.dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-.dot.live { animation: pulse 1.3s infinite; }
+.sBadge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;
+font-size:9px;font-family:var(–mono);font-weight:700;border:1px solid;white-space:nowrap}
+.sBadge.open   {background:#00e87a12;border-color:#00e87a55;color:var(–up)}
+.sBadge.closed {background:#ff3b5c0e;border-color:#ff3b5c44;color:var(–dn)}
+.sBadge.brk    {background:#ffb50012;border-color:#ffb50055;color:var(–warn)}
+.sBadge.pre    {background:#1a6fff12;border-color:#1a6fff55;color:var(–accent)}
+.sBadge.holiday{background:#44444412;border-color:#44444455;color:#888}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.dot.live{animation:pulse 1.3s infinite}
 
 /* price */
-.priceMain { font-family: var(--mono); font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -.5px; }
-.chgRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
-.chgAbs { font-family: var(--mono); font-size: 13px; font-weight: 700; }
-.chgPct { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; border: 1px solid; }
-.c-up { color: var(--up); } .c-dn { color: var(--dn); } .c-neu { color: var(--warn); }
-.b-up { background: #00e87a12; border-color: #00e87a44; }
-.b-dn { background: #ff3b5c10; border-color: #ff3b5c33; }
-.b-neu { background: #ffb50012; border-color: #ffb50033; }
+.priceMain{font-family:var(–mono);font-size:28px;font-weight:700;color:#fff;letter-spacing:-.5px}
+.chgRow{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.chgAbs{font-family:var(–mono);font-size:13px;font-weight:700}
+.chgPct{font-family:var(–mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;border:1px solid}
+.c-up{color:var(–up)}.c-dn{color:var(–dn)}.c-neu{color:var(–warn)}
+.b-up{background:#00e87a12;border-color:#00e87a44}
+.b-dn{background:#ff3b5c10;border-color:#ff3b5c33}
+.b-neu{background:#ffb50012;border-color:#ffb50033}
 
 /* ohlc */
-.ohlc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0; }
-.oCell { background: var(--bg); border-radius: 7px; padding: 6px 7px; text-align: center; border: 1px solid var(--border); }
-.oLbl { font-size: 7px; color: var(--muted); font-family: var(--mono); letter-spacing: .08em; margin-bottom: 2px; }
-.oVal { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 700; }
+.ohlc{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:10px 0}
+.oCell{background:var(–bg);border-radius:7px;padding:6px 7px;text-align:center;border:1px solid var(–border)}
+.oLbl{font-size:7px;color:var(–muted);font-family:var(–mono);letter-spacing:.08em;margin-bottom:2px}
+.oVal{font-family:var(–mono);font-size:11px;color:var(–text);font-weight:700}
 
 /* target box */
-.tgtBox { background: linear-gradient(135deg, #0a1d3a, #0b1829); border: 1px solid #1a4a9055;
-  border-radius: 11px; padding: 12px 13px; margin: 10px 0; }
-.tgtTop { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.tgtLbl { font-size: 8px; color: #4a9aff; font-family: var(--mono); letter-spacing: .15em; }
-.tgtPRow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
-.tgtPrice { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #fff; }
-.tgtChg { font-family: var(--mono); font-size: 12px; font-weight: 700; }
-.rRow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.rLbl { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.rLo, .rHi { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
-.rLo { background: #00e87a0f; border: 1px solid #00e87a33; color: var(--up); }
-.rHi { background: #ff3b5c0f; border: 1px solid #ff3b5c33; color: var(--dn); }
-.cRow { display: flex; justify-content: space-between; margin-top: 8px; margin-bottom: 3px; }
-.cLbl { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.cVal { font-size: 8px; font-family: var(--mono); font-weight: 700; }
-.cBar { height: 2px; background: var(--dim); border-radius: 99px; overflow: hidden; }
-.cFill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+.tgtBox{background:linear-gradient(135deg,#0a1d3a,#0b1829);border:1px solid #1a4a9055;
+border-radius:11px;padding:12px 13px;margin:10px 0}
+.tgtTop{display:flex;justify-content:space-between;margin-bottom:5px}
+.tgtLbl{font-size:8px;color:#4a9aff;font-family:var(–mono);letter-spacing:.15em}
+.tgtPRow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.tgtPrice{font-family:var(–mono);font-size:22px;font-weight:700;color:#fff}
+.tgtChg{font-family:var(–mono);font-size:12px;font-weight:700}
+.rRow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rLbl{font-size:8px;color:var(–muted);font-family:var(–mono)}
+.rLo,.rHi{font-family:var(–mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px}
+.rLo{background:#00e87a0f;border:1px solid #00e87a33;color:var(–up)}
+.rHi{background:#ff3b5c0f;border:1px solid #ff3b5c33;color:var(–dn)}
+.cRow{display:flex;justify-content:space-between;margin-top:8px;margin-bottom:3px}
+.cLbl{font-size:8px;color:var(–muted);font-family:var(–mono)}
+.cVal{font-size:8px;font-family:var(–mono);font-weight:700}
+.cBar{height:2px;background:var(–dim);border-radius:99px;overflow:hidden}
+.cFill{height:100%;border-radius:99px;transition:width 1s ease}
 
 /* swing */
-.swBox { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 11px; margin: 10px 0; }
-.swTitle { font-size: 7px; color: var(--muted); font-family: var(--mono); letter-spacing: .15em; margin-bottom: 8px; text-transform: uppercase; }
-.swGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.swCell { background: var(--bg1); border-radius: 7px; padding: 7px 5px; text-align: center; border: 1px solid var(--border); }
-.swN  { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-bottom: 4px; }
-.swH  { font-family: var(--mono); font-size: 10px; color: var(--dn); font-weight: 700; }
-.swHp { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-bottom: 2px; }
-.swDiv { height: 1px; background: var(--border); margin: 3px 0; }
-.swL  { font-family: var(--mono); font-size: 10px; color: var(--up); font-weight: 700; }
-.swLp { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
+.swBox{background:var(–bg);border:1px solid var(–border);border-radius:9px;padding:10px 11px;margin:10px 0}
+.swTitle{font-size:7px;color:var(–muted);font-family:var(–mono);letter-spacing:.15em;margin-bottom:8px;text-transform:uppercase}
+.swGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.swCell{background:var(–bg1);border-radius:7px;padding:7px 5px;text-align:center;border:1px solid var(–border)}
+.swN {font-size:7px;color:var(–muted);font-family:var(–mono);margin-bottom:4px}
+.swH {font-family:var(–mono);font-size:10px;color:var(–dn);font-weight:700}
+.swHp{font-size:7px;color:var(–muted);font-family:var(–mono);margin-bottom:2px}
+.swDv{height:1px;background:var(–border);margin:3px 0}
+.swL {font-family:var(–mono);font-size:10px;color:var(–up);font-weight:700}
+.swLp{font-size:7px;color:var(–muted);font-family:var(–mono);margin-top:1px}
 
 /* pivots */
-.pivTitleBar { font-size: 7px; color: var(--muted); font-family: var(--mono); letter-spacing: .18em;
-  text-transform: uppercase; padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 7px; }
-.pivGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-@media(min-width: 860px) { .pivGrid { grid-template-columns: 1fr 1fr 1fr; } }
-.pivRow { display: flex; justify-content: space-between; align-items: center;
-  padding: 5px 8px; border-radius: 6px; background: var(--bg); border-left: 2px solid; }
-.pivRow.r { border-color: var(--dn);  background: #ff3b5c06; }
-.pivRow.p { border-color: var(--warn); background: var(--bg2); }
-.pivRow.s { border-color: var(--up);  background: #00e87a06; }
-.pn { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.pv { font-family: var(--mono); font-size: 10px; font-weight: 700; }
-.pivRow.r .pv { color: var(--dn); } .pivRow.p .pv { color: var(--warn); } .pivRow.s .pv { color: var(--up); }
+.pivTBar{font-size:7px;color:var(–muted);font-family:var(–mono);letter-spacing:.18em;
+text-transform:uppercase;padding-bottom:6px;border-bottom:1px solid var(–border);margin-bottom:7px}
+.pivGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+@media(min-width:860px){.pivGrid{grid-template-columns:1fr 1fr 1fr}}
+.pivRow{display:flex;justify-content:space-between;align-items:center;
+padding:5px 8px;border-radius:6px;background:var(–bg);border-left:2px solid}
+.pivRow.r{border-color:var(–dn);background:#ff3b5c06}
+.pivRow.p{border-color:var(–warn);background:var(–bg2)}
+.pivRow.s{border-color:var(–up);background:#00e87a06}
+.pn{font-size:8px;color:var(–muted);font-family:var(–mono)}
+.pv{font-family:var(–mono);font-size:10px;font-weight:700}
+.pivRow.r .pv{color:var(–dn)}.pivRow.p .pv{color:var(–warn)}.pivRow.s .pv{color:var(–up)}
 
 /* sessions */
-.sesRow { display: flex; gap: 5px; flex-wrap: wrap; margin: 10px 0; }
-.sesCell { flex: 1; min-width: 90px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px; }
-.sesN  { font-size: 7px; color: var(--accent); font-family: var(--mono); letter-spacing: .08em; margin-bottom: 2px; }
-.sesT  { font-family: var(--mono); font-size: 10px; color: var(--text); }
-.sesTz { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
+.sesRow{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}
+.sesCell{flex:1;min-width:90px;background:var(–bg);border:1px solid var(–border);border-radius:7px;padding:6px 9px}
+.sesN {font-size:7px;color:var(–accent);font-family:var(–mono);letter-spacing:.08em;margin-bottom:2px}
+.sesT {font-family:var(–mono);font-size:10px;color:var(–text)}
+.sesTz{font-size:7px;color:var(–muted);font-family:var(–mono);margin-top:1px}
 
 /* footer */
-.cFoot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-  gap: 4px; padding-top: 9px; border-top: 1px solid var(--border); }
-.updTime { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.srcBadge { font-size: 8px; padding: 2px 7px; border-radius: 5px; font-family: var(--mono); border: 1px solid; }
-.sLive { background: #00e87a0a; border-color: #00e87a44; color: var(--up); }
-.sSeed { background: #ffb5000a; border-color: #ffb50044; color: var(--warn); }
+.cFoot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+gap:4px;padding-top:9px;border-top:1px solid var(–border)}
+.updTime{font-size:8px;color:var(–muted);font-family:var(–mono)}
+.srcBadge{font-size:8px;padding:2px 7px;border-radius:5px;font-family:var(–mono);border:1px solid}
+.sLive{background:#00e87a0a;border-color:#00e87a44;color:var(–up)}
+.sSeed{background:#ffb5000a;border-color:#ffb50044;color:var(–warn)}
 
-/* loader / error */
-.loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
-.spinEl { width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-.loaderTxt { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-.errBox { background: #1a060a; border: 1px solid #ff3b5c33; border-radius: 10px;
-  padding: 14px; text-align: center; font-size: 12px; color: #ff8a9a; line-height: 1.8; }
+/* loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px}
+.spinEl{width:20px;height:20px;border:2px solid var(–border2);border-top-color:var(–accent);border-radius:50%;animation:spin .7s linear infinite}
+.loaderTxt{font-family:var(–mono);font-size:10px;color:var(–muted)}
+.errBox{background:#1a060a;border:1px solid #ff3b5c33;border-radius:10px;
+padding:14px;text-align:center;font-size:12px;color:#ff8a9a;line-height:1.8}
 
-/* disclaimer */
-.disc { margin-top: 32px; text-align: center; font-family: var(--mono); font-size: 8px; color: var(--dim); line-height: 2.3; letter-spacing: .02em; }
+.disc{margin-top:32px;text-align:center;font-family:var(–mono);font-size:8px;color:var(–dim);line-height:2.3}
 </style>
+
 </head>
 <body>
 <div class="wrap">
 
 <!-- HEADER -->
+
 <header>
-  <div class="h-brand">
+  <div>
     <span class="h-tag">Market Intelligence Terminal</span>
     <span class="h-title">📊 INDEX TARGET ENGINE</span>
-    <span class="h-sub">ราคาปิดเป้าหมาย · Pivot Points · Swing Range · Live Data</span>
+    <span class="h-sub">SET · SET50 · Nikkei · Hang Seng — Live via Google Sheets</span>
   </div>
-  <div class="h-clock-block">
+  <div>
     <span class="h-clock" id="clock">--:--:--</span>
-    <span class="h-date"  id="dateStr"></span>
+    <span class="h-date" id="dateStr"></span>
   </div>
 </header>
 
-<!-- API KEY BANNER -->
-<div id="keyBanner">
-  <div class="key-info">
-    <div class="key-title">🔑 ใส่ Finnhub API Key เพื่อรับข้อมูล Live จริง</div>
-    <div class="key-desc">
-      สมัครฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> → คัดลอก API Key มาวาง
-      (ไม่มีค่าใช้จ่าย · 60 calls/min · Key จะถูกเก็บใน localStorage ของ browser นี้)
+<!-- SETUP BANNER -->
+
+<div id="setupBanner">
+  <div class="setup-title">🔧 ตั้งค่า Google Sheets (ทำครั้งเดียว)</div>
+  <div class="setup-steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text">
+        เปิด <a href="https://docs.google.com/spreadsheets/create" target="_blank">Google Sheets ใหม่</a>
+        แล้วตั้งชื่อ Sheet ว่า <code>Data</code>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text">
+        ใส่สูตรในเซลล์ตามนี้ (copy ทั้งหมดแปะใน A1 แล้ว Enter ทีละเซลล์):<br><br>
+        <code>A1</code> = <code>SET</code> &nbsp;
+        <code>B1</code> = <code>=GOOGLEFINANCE("INDEXBOM:SENSEX")</code> ← <em>ใช้ SET proxy*</em><br>
+        <code>A2</code> = <code>SET50</code> &nbsp;
+        <code>B2</code> = <code>=GOOGLEFINANCE("SET:SET50")</code><br>
+        <code>A3</code> = <code>N225</code> &nbsp;
+        <code>B3</code> = <code>=GOOGLEFINANCE("INDEXNIKKEI:NI225","price")</code><br>
+        <code>A4</code> = <code>HSI</code> &nbsp;
+        <code>B4</code> = <code>=GOOGLEFINANCE("INDEXHANGSENG:HSI","price")</code><br><br>
+        แล้วใส่เพิ่มสำหรับ OHLC แต่ละดัชนี — ดูคู่มือด้านล่างสุดครับ
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text">
+        ไปที่เมนู <strong>Extensions → Apps Script</strong> แล้ว paste โค้ดด้านล่าง กด Deploy → New Deployment → Web App → Anyone → Deploy → คัดลอก URL
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text">วาง URL ของ Web App ที่ได้มาในช่องด้านล่าง แล้วกด บันทึก</div>
     </div>
   </div>
-  <div class="key-input-row" id="keyInputRow">
-    <input id="apiKeyInput" type="text" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
-    <button id="saveKeyBtn" onclick="saveKey()">💾 บันทึก & โหลด</button>
+
+  <!-- Apps Script code to copy -->
+
+  <details style="margin-bottom:14px">
+    <summary style="font-family:var(--mono);font-size:10px;color:var(--accent);cursor:pointer;margin-bottom:8px">
+      📋 คลิกเพื่อดู Apps Script Code (copy ทั้งหมด)
+    </summary>
+    <pre id="appsScriptCode" style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;
+      padding:12px;font-family:var(--mono);font-size:10px;color:#aac4e8;overflow-x:auto;
+      line-height:1.7;margin-top:8px;white-space:pre-wrap">function doGet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sh = ss.getSheetByName("Data");
+
+// Helper: safely get numeric value
+function n(row, col) {
+var v = sh.getRange(row, col).getValue();
+return (typeof v === “number” && !isNaN(v)) ? v : 0;
+}
+
+var data = {
+SET:   { open:n(2,2), high:n(3,2), low:n(4,2), close:n(5,2), prevClose:n(6,2), vol:n(7,2) },
+SET50: { open:n(2,4), high:n(3,4), low:n(4,4), close:n(5,4), prevClose:n(6,4), vol:n(7,4) },
+N225:  { open:n(2,6), high:n(3,6), low:n(4,6), close:n(5,6), prevClose:n(6,6), vol:n(7,6) },
+HSI:   { open:n(2,8), high:n(3,8), low:n(4,8), close:n(5,8), prevClose:n(6,8), vol:n(7,8) },
+updated: new Date().toISOString()
+};
+
+return ContentService
+.createTextOutput(JSON.stringify(data))
+.setMimeType(ContentService.MimeType.JSON);
+}</pre>
+<button onclick="copyScript()" style="margin-top:8px;padding:6px 14px;border-radius:6px;
+border:1px solid var(--accent);background:#1a3a7a;color:#7ab8ff;font-family:var(--mono);
+font-size:10px;cursor:pointer">📋 Copy Code</button>
+
+  </details>
+
+  <!-- Sheets formula guide -->
+
+  <details style="margin-bottom:14px">
+    <summary style="font-family:var(--mono);font-size:10px;color:var(--warn);cursor:pointer;margin-bottom:8px">
+      📊 คลิกเพื่อดูสูตร Google Sheets ที่ต้องใส่ (layout แบบ column)
+    </summary>
+    <pre style="background:var(--bg);border:1px solid var(--border2);border-radius:8px;
+      padding:12px;font-family:var(--mono);font-size:9px;color:#aac4e8;overflow-x:auto;
+      line-height:1.8;margin-top:8px;white-space:pre-wrap">Row 1 (headers):
+A1=Label  B1=SET    C1=(blank) D1=SET50  E1=(blank) F1=N225   G1=(blank) H1=HSI
+
+Row 2 (open):
+A2=open
+B2=GOOGLEFINANCE(“SET:SET”,“open”)
+D2=GOOGLEFINANCE(“SET:SET50”,“open”)
+F2=GOOGLEFINANCE(“INDEXNIKKEI:NI225”,“open”)
+H2=GOOGLEFINANCE(“INDEXHANGSENG:HSI”,“open”)
+
+Row 3 (high):
+A3=high
+B3=GOOGLEFINANCE(“SET:SET”,“high”)
+D3=GOOGLEFINANCE(“SET:SET50”,“high”)
+F3=GOOGLEFINANCE(“INDEXNIKKEI:NI225”,“high”)
+H3=GOOGLEFINANCE(“INDEXHANGSENG:HSI”,“high”)
+
+Row 4 (low):
+A4=low
+B4=GOOGLEFINANCE(“SET:SET”,“low”)
+D4=GOOGLEFINANCE(“SET:SET50”,“low”)
+F4=GOOGLEFINANCE(“INDEXNIKKEI:NI225”,“low”)
+H4=GOOGLEFINANCE(“INDEXHANGSENG:HSI”,“low”)
+
+Row 5 (close/price):
+A5=close
+B5=GOOGLEFINANCE(“SET:SET”,“price”)
+D5=GOOGLEFINANCE(“SET:SET50”,“price”)
+F5=GOOGLEFINANCE(“INDEXNIKKEI:NI225”,“price”)
+H5=GOOGLEFINANCE(“INDEXHANGSENG:HSI”,“price”)
+
+Row 6 (prev close):
+A6=prevClose
+B6=GOOGLEFINANCE(“SET:SET”,“closeyest”)
+D6=GOOGLEFINANCE(“SET:SET50”,“closeyest”)
+F6=GOOGLEFINANCE(“INDEXNIKKEI:NI225”,“closeyest”)
+H6=GOOGLEFINANCE(“INDEXHANGSENG:HSI”,“closeyest”)
+
+Row 7 (volume):
+A7=volume
+B7=GOOGLEFINANCE(“SET:SET”,“volume”)
+D7=GOOGLEFINANCE(“SET:SET50”,“volume”)
+F7=GOOGLEFINANCE(“INDEXNIKKEI:NI225”,“volume”)
+H7=GOOGLEFINANCE(“INDEXHANGSENG:HSI”,“volume”)
+
+⚠ สูตรใน Google Sheets ต้องไม่มี = นำหน้าใน cell นี้
+ใส่จริงในเซลล์ต้องเป็น: =GOOGLEFINANCE(“SET:SET”,“price”)</pre>
+
+  </details>
+
+  <!-- URL input -->
+
+  <div class="url-input-row">
+    <input id="sheetUrl" type="text" placeholder="https://script.google.com/macros/s/xxxx/exec" autocomplete="off">
+    <button id="saveUrl" onclick="saveSheetUrl()">💾 บันทึก & โหลด</button>
   </div>
-  <div class="key-ok" id="keyOkRow" style="display:none">
-    <span class="key-ok-text">✅ API Key พร้อมใช้งาน</span>
-    <button id="changeKeyBtn" onclick="changeKey()">เปลี่ยน</button>
+  <div id="urlOkRow">
+    <span class="url-ok-text">✅ เชื่อมต่อ Google Sheets แล้ว</span>
+    <button id="changeUrl" onclick="changeSheetUrl()">เปลี่ยน URL</button>
   </div>
 </div>
 
 <!-- TOOLBAR -->
+
 <div class="toolbar">
   <div class="tabs">
     <button class="tab active" onclick="setView('ALL')">🌏 ทุกดัชนี</button>
@@ -243,241 +363,172 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
   </button>
 </div>
 
-<div class="statusBar">
-  <span class="sDot"></span>
-  <span id="statusTxt">รอ API Key...</span>
-</div>
-
+<div class="statusBar"><span class="sDot"></span><span id="statusTxt">รอการตั้งค่า...</span></div>
 <div class="cards" id="cards"></div>
 
 <div class="disc">
   ⚠ ข้อมูลเพื่อการศึกษาเท่านั้น · ไม่ใช่คำแนะนำการลงทุน<br>
-  Live data: Finnhub.io (Free Tier · CORS Enabled) · Pivot = Classic Formula · Predicted Close = OHLC Weighted Model<br>
-  Auto-refresh 3 min · API Key เก็บใน localStorage ของ Browser ไม่ส่งออกไปที่อื่น
+  Data source: Google Finance via Google Sheets → Apps Script Web App · Pivot = Classic Formula · Predicted Close = OHLC Weighted Model<br>
+  Auto-refresh 3 min · Sheet URL เก็บใน localStorage ของ Browser เท่านั้น
 </div>
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════
-   INDICES CONFIG
-   Finnhub symbols: indices ใช้ prefix ต่างกันตาม exchange
-══════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════
+   CONFIG — ข้อมูลดัชนีและ Seed fallback
+══════════════════════════════════════════════ */
 const INDICES = [
   {
-    id: 'SET', label: 'SET Index', flag: '🇹🇭', cur: 'THB',
-    tz: 'Asia/Bangkok', tzOff: 7,
-    // Finnhub: Thailand SET = FXCM:THAINDEX — fallback: seed จาก SET.or.th 05 May 2026
-    finnhub: ['BINANCE:SETUSDT'],   // placeholder; real index via quote endpoint below
-    quoteSymbol: '^SET',            // used for display; Finnhub may return data for this
-    // Seed verified from SET.or.th 05 May 2026
-    seed: { open:1498.27, high:1503.90, low:1484.84, close:1490.10, prevClose:1493.69,
-             vol:6604269, note:'SET.or.th 05 May 2026' },
-    sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:30' }, { name:'ช่วงบ่าย', open:'14:00', close:'17:00' }],
+    id:'SET', label:'SET Index', flag:'🇹🇭', cur:'THB',
+    tz:'Asia/Bangkok', tzOff:7,
+    sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:30'},{name:'ช่วงบ่าย',open:'14:00',close:'17:00'}],
+    // Seed จาก SET.or.th 05 May 2026
+    seed:{open:1498.27,high:1503.90,low:1484.84,close:1490.10,prevClose:1493.69,vol:6604269}
   },
   {
-    id: 'SET50', label: 'SET50', flag: '🇹🇭', cur: 'THB',
-    tz: 'Asia/Bangkok', tzOff: 7,
-    quoteSymbol: 'SET50',
-    seed: { open:792.50, high:795.50, low:785.50, close:787.60, prevClose:789.50,
-             vol:2200000, note:'ประมาณ 52.9% ของ SET' },
-    sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:30' }, { name:'ช่วงบ่าย', open:'14:00', close:'17:00' }],
+    id:'SET50', label:'SET50', flag:'🇹🇭', cur:'THB',
+    tz:'Asia/Bangkok', tzOff:7,
+    sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:30'},{name:'ช่วงบ่าย',open:'14:00',close:'17:00'}],
+    seed:{open:792.50,high:795.50,low:785.50,close:787.60,prevClose:789.50,vol:2200000}
   },
   {
-    id: 'N225', label: 'Nikkei 225', flag: '🇯🇵', cur: 'JPY',
-    tz: 'Asia/Tokyo', tzOff: 9,
-    finnhubSymbol: '^N225',          // Finnhub supports this
-    seed: { open:59513.0, high:59621.0, low:59200.0, close:59513.0, prevClose:59289.0,
-             vol:680000, note:'ปิด 01 May 2026 (Golden Week)' },
-    sessions: [{ name:'ช่วง 1', open:'09:00', close:'11:30' }, { name:'ช่วง 2', open:'12:30', close:'15:30' }],
+    id:'N225', label:'Nikkei 225', flag:'🇯🇵', cur:'JPY',
+    tz:'Asia/Tokyo', tzOff:9,
+    sessions:[{name:'ช่วง 1',open:'09:00',close:'11:30'},{name:'ช่วง 2',open:'12:30',close:'15:30'}],
+    seed:{open:59513,high:59621,low:59200,close:59513,prevClose:59289,vol:680000}
   },
   {
-    id: 'HSI', label: 'Hang Seng', flag: '🇭🇰', cur: 'HKD',
-    tz: 'Asia/Hong_Kong', tzOff: 8,
-    finnhubSymbol: '^HSI',           // Finnhub supports this
-    seed: { open:25900.0, high:26320.0, low:25820.0, close:26096.0, prevClose:25777.0,
-             vol:1450000000, note:'Trading Economics 05 May 2026' },
-    sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:00' }, { name:'ช่วงบ่าย', open:'13:00', close:'16:00' }],
-  },
+    id:'HSI', label:'Hang Seng', flag:'🇭🇰', cur:'HKD',
+    tz:'Asia/Hong_Kong', tzOff:8,
+    sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:00'},{name:'ช่วงบ่าย',open:'13:00',close:'16:00'}],
+    seed:{open:25900,high:26320,low:25820,close:26096,prevClose:25777,vol:1450000000}
+  }
 ];
 
 /* ══ STATE ══ */
-let view = 'ALL', cache = {}, busy = false;
-let apiKey = localStorage.getItem('finnhub_key') || '';
+let view='ALL', cache={}, busy=false;
+let sheetUrl = localStorage.getItem('sheet_url') || '';
 
-/* ══ INIT KEY UI ══ */
-function initKeyUI() {
-  if (apiKey) {
-    document.getElementById('keyInputRow').style.display = 'none';
-    document.getElementById('keyOkRow').style.display = 'flex';
-  } else {
-    document.getElementById('keyInputRow').style.display = 'flex';
-    document.getElementById('keyOkRow').style.display = 'none';
-  }
+/* ══ INIT ══ */
+function initUI() {
+  const hasUrl = !!sheetUrl;
+  document.getElementById('urlOkRow').style.display = hasUrl ? 'flex' : 'none';
+  document.getElementById('saveUrl').parentElement.style.display = hasUrl ? 'none' : 'flex';
+  if (!hasUrl) document.getElementById('sheetUrl').value = '';
 }
-function saveKey() {
-  const v = document.getElementById('apiKeyInput').value.trim();
-  if (!v) return;
-  apiKey = v;
-  localStorage.setItem('finnhub_key', v);
-  initKeyUI();
+function saveSheetUrl() {
+  const v = document.getElementById('sheetUrl').value.trim();
+  if (!v) return alert('กรุณาใส่ URL ของ Google Apps Script Web App');
+  sheetUrl = v;
+  localStorage.setItem('sheet_url', v);
+  initUI();
   fetchAll();
 }
-function changeKey() {
-  document.getElementById('keyInputRow').style.display = 'flex';
-  document.getElementById('keyOkRow').style.display = 'none';
-  document.getElementById('apiKeyInput').value = apiKey;
+function changeSheetUrl() {
+  document.getElementById('urlOkRow').style.display = 'none';
+  document.getElementById('saveUrl').parentElement.style.display = 'flex';
+  document.getElementById('sheetUrl').value = sheetUrl;
+}
+function copyScript() {
+  navigator.clipboard.writeText(document.getElementById('appsScriptCode').textContent)
+    .then(() => alert('✅ Copy แล้ว! ไปวางใน Apps Script Editor ได้เลย'))
+    .catch(() => alert('กรุณา copy ด้วยมือ (Ctrl+A แล้ว Ctrl+C ในกล่องโค้ด)'));
 }
 
 /* ══ CLOCK ══ */
 function tick() {
   const n = new Date();
-  document.getElementById('clock').textContent = n.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  document.getElementById('dateStr').textContent = n.toLocaleDateString('th-TH', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  document.getElementById('clock').textContent = n.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('dateStr').textContent = n.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 }
-setInterval(tick, 1000); tick();
+setInterval(tick,1000); tick();
 
 /* ══ SESSION STATUS ══ */
 function getSession(idx) {
   const n = new Date();
-  const loc = new Date(n.toLocaleString('en-US', { timeZone: idx.tz }));
-  const day = loc.getDay(), hm = loc.getHours() * 60 + loc.getMinutes();
-  const t = loc.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  if (day === 0 || day === 6) return { status:'holiday', label:'วันหยุดสุดสัปดาห์', t };
-  for (let i = 0; i < idx.sessions.length; i++) {
+  const loc = new Date(n.toLocaleString('en-US',{timeZone:idx.tz}));
+  const day = loc.getDay(), hm = loc.getHours()*60+loc.getMinutes();
+  const t = loc.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  if (day===0||day===6) return {status:'holiday',label:'วันหยุดสุดสัปดาห์',t};
+  for (let i=0;i<idx.sessions.length;i++) {
     const s = idx.sessions[i];
-    const [oh, om] = s.open.split(':').map(Number);
-    const [ch, cm] = s.close.split(':').map(Number);
-    const o = oh * 60 + om, c = ch * 60 + cm;
-    if (hm >= o && hm < c) return { status:'open', label:`เปิด — ${s.name}`, t };
-    if (i < idx.sessions.length - 1) {
-      const [nh, nm] = idx.sessions[i+1].open.split(':').map(Number);
-      if (hm >= c && hm < nh * 60 + nm) return { status:'brk', label:`พัก → ${idx.sessions[i+1].open}`, t };
+    const [oh,om]=s.open.split(':').map(Number), [ch,cm]=s.close.split(':').map(Number);
+    const o=oh*60+om, c=ch*60+cm;
+    if (hm>=o&&hm<c) return {status:'open',label:`เปิด — ${s.name}`,t};
+    if (i<idx.sessions.length-1) {
+      const [nh,nm]=idx.sessions[i+1].open.split(':').map(Number);
+      if (hm>=c&&hm<nh*60+nm) return {status:'brk',label:`พัก → ${idx.sessions[i+1].open}`,t};
     }
   }
-  const [fh, fm] = idx.sessions[0].open.split(':').map(Number);
-  if (hm < fh * 60 + fm && (fh * 60 + fm - hm) <= 45)
-    return { status:'pre', label:`Pre-Market → ${idx.sessions[0].open}`, t };
-  return { status:'closed', label:'ตลาดปิดแล้ว', t };
+  const [fh,fm]=idx.sessions[0].open.split(':').map(Number);
+  if (hm<fh*60+fm&&(fh*60+fm-hm)<=45) return {status:'pre',label:`Pre-Market → ${idx.sessions[0].open}`,t};
+  return {status:'closed',label:'ตลาดปิดแล้ว',t};
 }
 
-/* ══ FINNHUB FETCH ══ */
-// Finnhub /quote endpoint — supports CORS natively
-async function fetchFinnhub(symbol) {
-  const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
-  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j = await r.json();
-  // j: { c: current, h: high, l: low, o: open, pc: prev close, t: timestamp }
-  if (!j.c || j.c === 0) throw new Error('No data');
-  return j;
-}
-
-// Finnhub /stock/candle for historical (to get yesterday's OHLC for pivot)
-async function fetchFinnhubCandles(symbol) {
-  const now = Math.floor(Date.now() / 1000);
-  const from = now - 86400 * 7; // 7 days back
-  const url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${now}&token=${apiKey}`;
-  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j = await r.json();
-  if (j.s !== 'ok' || !j.c?.length) throw new Error('No candle data');
-  return j;
-}
-
-/* ══ LOAD ONE INDEX ══ */
-async function loadIndex(idx) {
-  if (!apiKey) {
-    const s = idx.seed;
-    return { ...s, change: s.close - s.prevClose, changePct: ((s.close - s.prevClose) / s.prevClose) * 100,
-             prevDay: null, live: false, src: 'Seed — ใส่ API Key เพื่อดึงข้อมูลจริง' };
-  }
-
-  const sym = idx.finnhubSymbol || null;
-
-  // SET / SET50 — Finnhub ไม่รองรับ SET index โดยตรง ใช้ seed แล้วแจ้งผู้ใช้
-  if (!sym) {
-    const s = idx.seed;
-    return { ...s, change: s.close - s.prevClose, changePct: ((s.close - s.prevClose) / s.prevClose) * 100,
-             prevDay: null, live: false, src: 'Seed (Finnhub ไม่รองรับ SET โดยตรง)' };
-  }
-
+/* ══ FETCH FROM GOOGLE SHEETS WEB APP ══ */
+async function fetchFromSheet() {
+  if (!sheetUrl) return null;
   try {
-    const [q, candles] = await Promise.all([
-      fetchFinnhub(sym),
-      fetchFinnhubCandles(sym).catch(() => null),
-    ]);
-
-    const close    = q.c;
-    const open     = q.o;
-    const high     = q.h;
-    const low      = q.l;
-    const prevClose = q.pc;
-    const change   = close - prevClose;
-    const changePct = (change / prevClose) * 100;
-    const vol      = q.v || 0;
-
-    // Previous day candle for pivot
-    let prevDay = null;
-    if (candles && candles.c.length >= 2) {
-      const n = candles.c.length;
-      prevDay = {
-        open: candles.o[n - 2], high: candles.h[n - 2],
-        low:  candles.l[n - 2], close: candles.c[n - 2],
-      };
-    }
-
-    return { open, high, low, close, prevClose, vol, change, changePct, prevDay, live: true, src: 'Finnhub Live' };
-  } catch (e) {
-    // Fallback to seed
-    const s = idx.seed;
-    return { ...s, change: s.close - s.prevClose, changePct: ((s.close - s.prevClose) / s.prevClose) * 100,
-             prevDay: null, live: false, src: `Seed (${e.message})` };
+    // Google Apps Script Web App ส่ง CORS header มาเอง
+    const r = await fetch(sheetUrl, {signal: AbortSignal.timeout(10000)});
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const j = await r.json();
+    return j;
+  } catch(e) {
+    console.warn('Sheet fetch error:', e.message);
+    return null;
   }
 }
 
 /* ══ PIVOT ══ */
-function calcPiv(h, l, c) {
-  const P = (h + l + c) / 3, R = h - l;
-  return { P, R1:2*P-l, R2:P+R, R3:h+2*(P-l), S1:2*P-h, S2:P-R, S3:l-2*(h-P),
-           FR1:P+.382*R, FR2:P+.618*R, FS1:P-.382*R, FS2:P-.618*R };
+function calcPiv(h,l,c) {
+  const P=(h+l+c)/3, R=h-l;
+  return {P, R1:2*P-l, R2:P+R, R3:h+2*(P-l),
+          S1:2*P-h, S2:P-R, S3:l-2*(h-P),
+          FR1:P+.382*R, FR2:P+.618*R, FS1:P-.382*R, FS2:P-.618*R};
 }
 
-/* ══ PREDICT ══ */
+/* ══ PREDICT CLOSE (OHLC weighted model) ══ */
 function predict(d) {
-  const { open:o, high:h, low:l, close:c, prevClose:pc, prevDay:pd } = d;
-  const rng = h - l;
-  const piv = (h + l + c) / 3;
-  const prevPiv = pd ? (pd.high + pd.low + pd.close) / 3 : piv;
-  const mom = (c - pc) / pc;
-  const balance = o * .1 + (h + l) / 2 * .4 + c * .5;
-  const regress = prevPiv * .25 + piv * .75;
-  const pred = balance * .5 + regress * .3 + (c * (1 + mom * .2)) * .2;
-  const sw1 = rng * .28, sw2 = rng * .55, sw3 = rng * .88;
-  const pos = rng > 0 ? (c - l) / rng : .5;
-  const centr = 1 - Math.abs(pos - .5) * 2;
-  const conf = Math.max(52, Math.min(82, Math.round(60 + centr * 22)));
-  return { pred, lo: pred - rng*.2, hi: pred + rng*.2, chg: pred - pc, chgPct: ((pred - pc) / pc) * 100, sw1, sw2, sw3, conf };
+  const {open:o,high:h,low:l,close:c,prevClose:pc} = d;
+  const rng = h-l;
+  const piv = (h+l+c)/3;
+  const mom = (c-pc)/pc;
+  // Weighted balance: open 10%, mid 40%, close 50%
+  const balance = o*.1 + (h+l)/2*.4 + c*.5;
+  // Mean reversion to pivot
+  const regress = piv*.75 + ((h+l+c)/3)*.25;
+  // Blend
+  const pred = balance*.5 + regress*.3 + (c*(1+mom*.2))*.2;
+  // Swing ranges (% of daily range)
+  const sw1=rng*.28, sw2=rng*.55, sw3=rng*.88;
+  // Confidence: how centered close is within range
+  const pos = rng>0 ? (c-l)/rng : .5;
+  const centr = 1-Math.abs(pos-.5)*2;
+  const conf = Math.max(52,Math.min(82,Math.round(60+centr*22)));
+  return {pred, lo:pred-rng*.2, hi:pred+rng*.2,
+          chg:pred-pc, chgPct:((pred-pc)/pc)*100, sw1, sw2, sw3, conf};
 }
 
 /* ══ FORMAT ══ */
-const f   = (v, d=2) => typeof v==='number' ? v.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d}) : '—';
-const cc  = v => v > 0 ? 'c-up' : v < 0 ? 'c-dn' : 'c-neu';
-const bc  = v => v > 0 ? 'b-up' : v < 0 ? 'b-dn' : 'b-neu';
-const sg  = v => v > 0 ? '▲ +' : v < 0 ? '▼ ' : '';
-const cfc = v => v >= 72 ? 'var(--up)' : v >= 58 ? 'var(--warn)' : 'var(--dn)';
+const f   = (v,d=2) => typeof v==='number' ? v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}) : '—';
+const cc  = v => v>0?'c-up':v<0?'c-dn':'c-neu';
+const bc  = v => v>0?'b-up':v<0?'b-dn':'b-neu';
+const sg  = v => v>0?'▲ +':v<0?'▼ ':'';
+const cfc = v => v>=72?'var(--up)':v>=58?'var(--warn)':'var(--dn)';
 
-/* ══ RENDER CARD ══ */
+/* ══ RENDER ONE CARD ══ */
 function renderCard(idx, d, sess) {
-  const { open, high, low, close, prevClose, vol, change, changePct, prevDay, live, src } = d;
+  const {open,high,low,close,prevClose,vol,live,src} = d;
+  const change = close-prevClose, changePct = (change/prevClose)*100;
   const pr = predict(d);
-  const ph = prevDay?.high || high, pl = prevDay?.low || low, pc2 = prevDay?.close || prevClose;
-  const pv = calcPiv(ph, pl, pc2);
-  const cc_ = cc(change), bc_ = bc(change);
-  const pc_ = cc(pr.chg), pb_ = bc(pr.chg);
-  const cf  = cfc(pr.conf);
+  const pv = calcPiv(high,low,close); // today's OHLC for pivot
+  const cc_=cc(change), bc_=bc(change);
+  const pc_=cc(pr.chg);
+  const cf = cfc(pr.conf);
   const now = new Date();
-  const ut  = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  const ud  = now.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
+  const ut = now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ud = now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
 
   return `<div class="card" id="card-${idx.id}">
   <!-- HEAD -->
@@ -487,9 +538,13 @@ function renderCard(idx, d, sess) {
         <span style="font-size:20px">${idx.flag}</span>
         <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff">${idx.label}</span>
       </div>
-      <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:3px">${idx.cur} · ${sess.t} (${idx.tz.split('/')[1]})</div>
+      <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:3px">
+        ${idx.cur} · ${sess.t} (${idx.tz.split('/')[1]})
+      </div>
     </div>
-    <div class="sBadge ${sess.status}"><span class="dot${sess.status==='open'?' live':''}"></span>${sess.label}</div>
+    <div class="sBadge ${sess.status}">
+      <span class="dot${sess.status==='open'?' live':''}"></span>${sess.label}
+    </div>
   </div>
 
   <!-- PRICE -->
@@ -527,10 +582,12 @@ function renderCard(idx, d, sess) {
       <span class="cLbl">CONFIDENCE SCORE</span>
       <span class="cVal" style="color:${cf}">${pr.conf}%</span>
     </div>
-    <div class="cBar"><div class="cFill" style="width:${pr.conf}%;background:${cf};box-shadow:0 0 6px ${cf}44"></div></div>
+    <div class="cBar">
+      <div class="cFill" style="width:${pr.conf}%;background:${cf};box-shadow:0 0 6px ${cf}44"></div>
+    </div>
   </div>
 
-  <!-- SWING -->
+  <!-- SWING RANGE -->
   <div class="swBox">
     <div class="swTitle">📐 Swing Range · อ้างอิงจากราคาปิดล่าสุด (${f(prevClose)})</div>
     <div class="swGrid">
@@ -539,15 +596,15 @@ function renderCard(idx, d, sess) {
         <div class="swN">${s.n}</div>
         <div class="swH">▲ ${f(prevClose+s.r)}</div>
         <div class="swHp">+${f(s.r/prevClose*100,2)}%</div>
-        <div class="swDiv"></div>
+        <div class="swDv"></div>
         <div class="swL">▼ ${f(prevClose-s.r)}</div>
         <div class="swLp">-${f(s.r/prevClose*100,2)}%</div>
       </div>`).join('')}
     </div>
   </div>
 
-  <!-- PIVOTS -->
-  <div class="pivTitleBar">Pivot Points · อ้างอิง H:${f(ph)} L:${f(pl)} C:${f(pc2)}</div>
+  <!-- PIVOT POINTS -->
+  <div class="pivTBar">Pivot Points · อ้างอิง H:${f(high)} L:${f(low)} C:${f(close)}</div>
   <div class="pivGrid">
     <div class="pivRow r"><span class="pn">R3</span><span class="pv">${f(pv.R3)}</span></div>
     <div class="pivRow r"><span class="pn">Fib R2 (61.8%)</span><span class="pv">${f(pv.FR2)}</span></div>
@@ -562,7 +619,7 @@ function renderCard(idx, d, sess) {
     <div class="pivRow s"><span class="pn">S3</span><span class="pv">${f(pv.S3)}</span></div>
   </div>
 
-  <!-- SESSIONS -->
+  <!-- SESSION SCHEDULE -->
   <div class="sesRow">
     ${idx.sessions.map(s=>`
     <div class="sesCell">
@@ -575,7 +632,7 @@ function renderCard(idx, d, sess) {
   <!-- FOOTER -->
   <div class="cFoot">
     <span class="updTime">🕐 ${ut} · ${ud}</span>
-    <span class="srcBadge ${live?'sLive':'sSeed'}">${live?'🟢 Finnhub Live':'🟡 '+src}</span>
+    <span class="srcBadge ${live?'sLive':'sSeed'}">${live?'🟢 Google Finance Live':'🟡 Seed data'}</span>
   </div>
 </div>`;
 }
@@ -589,36 +646,49 @@ async function fetchAll() {
   btn.disabled = true;
   ic.style.cssText = 'display:inline-block;animation:spin .8s linear infinite';
 
-  const vis = view === 'ALL' ? INDICES : INDICES.filter(x => x.id === view);
+  const vis = view==='ALL' ? INDICES : INDICES.filter(x=>x.id===view);
   const wrap = document.getElementById('cards');
 
-  wrap.innerHTML = vis.map(idx => `
+  // Show loaders
+  wrap.innerHTML = vis.map(idx=>`
     <div class="card" id="card-${idx.id}">
       <div class="loader"><div class="spinEl"></div>
       <span class="loaderTxt">${idx.flag} ${idx.label}...</span></div>
     </div>`).join('');
 
-  document.getElementById('statusTxt').textContent = apiKey
-    ? 'กำลังดึงข้อมูลจาก Finnhub...' : 'ใช้ข้อมูล Seed — ใส่ API Key เพื่อดึง Live';
+  const statusEl = document.getElementById('statusTxt');
+  statusEl.textContent = sheetUrl ? 'กำลังดึงข้อมูลจาก Google Sheets...' : 'ใช้ข้อมูล Seed — ตั้งค่า Google Sheets ด้านบน';
+
+  // Fetch from sheet (one call returns all indices)
+  let sheetData = null;
+  if (sheetUrl) sheetData = await fetchFromSheet();
 
   let liveCount = 0;
-  await Promise.all(vis.map(async idx => {
-    try {
-      const d = await loadIndex(idx);
-      cache[idx.id] = d;
-      if (d.live) liveCount++;
-      const el = document.getElementById(`card-${idx.id}`);
-      if (el) el.outerHTML = renderCard(idx, d, getSession(idx));
-    } catch(e) {
-      const el = document.getElementById(`card-${idx.id}`);
-      if (el) el.innerHTML = `<div class="errBox">⚠️ ${idx.flag} ${idx.label}<br>${e.message}</div>`;
+  vis.forEach(idx => {
+    let d;
+    const sd = sheetData?.[idx.id];
+    // Validate: close must be a real nonzero number
+    if (sd && typeof sd.close==='number' && sd.close > 0 &&
+        typeof sd.open==='number' && sd.open > 0) {
+      d = {
+        open: sd.open, high: sd.high||sd.close, low: sd.low||sd.close,
+        close: sd.close, prevClose: sd.prevClose||sd.close,
+        vol: sd.vol||0, live:true, src:'Google Finance'
+      };
+      liveCount++;
+    } else {
+      // Fallback to seed
+      d = {...idx.seed, live:false, src:'Seed'};
     }
-  }));
+    cache[idx.id] = d;
+    const el = document.getElementById(`card-${idx.id}`);
+    if (el) el.outerHTML = renderCard(idx, d, getSession(idx));
+  });
 
-  const t = new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  document.getElementById('statusTxt').textContent = apiKey
-    ? `อัปเดต ${t} · Live ${liveCount}/${vis.length} ดัชนี`
-    : `อัปเดต ${t} · Seed data — ใส่ API Key เพื่อดึงข้อมูลจริง`;
+  const t = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  statusEl.textContent = sheetUrl
+    ? `อัปเดต ${t} · ${liveCount>0 ? `Live ${liveCount}/${vis.length} ดัชนี ✅` : 'Sheet ตอบสนองแต่ไม่มีข้อมูล — ตรวจสอบสูตรใน Sheet'}`
+    : `Seed data · ตั้งค่า Google Sheets ด้านบนเพื่อดึงข้อมูลจริง`;
 
   busy = false;
   btn.disabled = false;
@@ -626,42 +696,38 @@ async function fetchAll() {
   ic.textContent = '↺';
 }
 
-/* ══ VIEW ══ */
+/* ══ VIEW TOGGLE ══ */
 function setView(v) {
   view = v;
   document.querySelectorAll('.tab').forEach(t => {
     const tx = t.textContent;
     t.classList.toggle('active',
-      (v==='ALL' && tx.includes('ทุก')) ||
-      (v==='SET'   && tx.includes('SET') && !tx.includes('50') && !tx.includes('ทุก')) ||
-      (v==='SET50' && tx.includes('50')) ||
-      (v==='N225'  && tx.includes('Nikkei')) ||
-      (v==='HSI'   && tx.includes('Hang')));
+      (v==='ALL'&&tx.includes('ทุก'))||(v==='SET'&&tx.includes('SET')&&!tx.includes('50')&&!tx.includes('ทุก'))||
+      (v==='SET50'&&tx.includes('50'))||(v==='N225'&&tx.includes('Nikkei'))||(v==='HSI'&&tx.includes('Hang')));
   });
-  const vis = view === 'ALL' ? INDICES : INDICES.filter(x => x.id === view);
-  if (vis.every(i => cache[i.id])) {
-    document.getElementById('cards').innerHTML = vis.map(idx => renderCard(idx, cache[idx.id], getSession(idx))).join('');
-  } else {
-    fetchAll();
-  }
+  const vis = view==='ALL'?INDICES:INDICES.filter(x=>x.id===view);
+  if (vis.every(i=>cache[i.id])) {
+    document.getElementById('cards').innerHTML = vis.map(idx=>renderCard(idx,cache[idx.id],getSession(idx))).join('');
+  } else fetchAll();
 }
 
-/* ══ SESSION UPDATE every min (no refetch) ══ */
-setInterval(() => {
-  const vis = view === 'ALL' ? INDICES : INDICES.filter(x => x.id === view);
-  vis.forEach(idx => {
+/* ══ SESSION BADGE UPDATE every 60s ══ */
+setInterval(()=>{
+  const vis = view==='ALL'?INDICES:INDICES.filter(x=>x.id===view);
+  vis.forEach(idx=>{
     if (!cache[idx.id]) return;
     const el = document.getElementById(`card-${idx.id}`);
-    if (el) el.outerHTML = renderCard(idx, cache[idx.id], getSession(idx));
+    if (el) el.outerHTML = renderCard(idx,cache[idx.id],getSession(idx));
   });
-}, 60000);
+},60000);
 
-/* ══ AUTO REFRESH 3 min ══ */
-setInterval(fetchAll, 3 * 60 * 1000);
+/* ══ AUTO-REFRESH every 3 min ══ */
+setInterval(fetchAll, 3*60*1000);
 
 /* ══ INIT ══ */
-initKeyUI();
+initUI();
 fetchAll();
 </script>
+
 </body>
 </html>
