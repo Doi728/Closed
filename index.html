@@ -1,206 +1,732 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Market Close Predictor - Full Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&display=swap');
-        body { background-color: #06080a; color: #d1d4dc; font-family: 'Inter', sans-serif; }
-        .market-card { background: #131722; border: 1px solid #363a45; border-radius: 12px; overflow: hidden; border: 1px solid #2a2e39; }
-        .range-box { font-family: 'JetBrains Mono', monospace; background: #1e222d; border-left: 4px solid #2962ff; }
-        .val-green { color: #22c55e; }
-        .val-red { color: #ef4444; }
-        .val-yellow { color: #eab308; }
-        .update-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #787b86; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Market Target Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #03070f;
+  --bg1:      #080f1c;
+  --bg2:      #0c1525;
+  --border:   #112240;
+  --border2:  #1a3260;
+  --accent:   #1e6fff;
+  --accent2:  #0a4aff;
+  --up:       #00e87a;
+  --dn:       #ff3a5c;
+  --warn:     #ffb800;
+  --text:     #c8daf5;
+  --muted:    #3a5580;
+  --dim:      #1e3050;
+  --mono:     'Space Mono', monospace;
+  --sans:     'Sarabun', sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+
+/* ── Grid noise bg ── */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(var(--border) 1px,transparent 1px),
+    linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:48px 48px;
+  opacity:.18;pointer-events:none;z-index:0;
+}
+
+.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:20px 16px 60px}
+
+/* ── Header ── */
+header{padding:28px 0 20px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.brand{display:flex;flex-direction:column;gap:4px}
+.brand-tag{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase}
+.brand-title{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1}
+.brand-sub{font-family:var(--sans);font-size:12px;color:var(--muted)}
+.header-time{text-align:right}
+.ht-label{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.1em;margin-bottom:4px}
+.ht-val{font-family:var(--mono);font-size:13px;color:var(--text)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.tab{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg1);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tab:hover{border-color:var(--border2);color:var(--text)}
+.tab.active{background:var(--bg2);border-color:var(--accent);color:#7ab8ff;box-shadow:0 0 12px #1e6fff22}
+
+/* ── Market Grid ── */
+.market-grid{display:grid;grid-template-columns:1fr;gap:14px}
+
+/* ── Card ── */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:18px 18px 14px;transition:border-color .2s;animation:fadeUp .3s ease}
+.card:hover{border-color:var(--border2)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Card header row */
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.card-name{display:flex;flex-direction:column;gap:4px}
+.card-flag-name{display:flex;align-items:center;gap:8px}
+.card-flag{font-size:18px}
+.card-label{font-family:var(--mono);font-size:14px;font-weight:700;color:#fff}
+.card-sub{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.session-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:10px;font-family:var(--mono);font-weight:700;border:1px solid;white-space:nowrap}
+.session-badge.open{background:#00e87a15;border-color:#00e87a44;color:var(--up)}
+.session-badge.closed{background:#ff3a5c10;border-color:#ff3a5c33;color:var(--dn)}
+.session-badge.break{background:#ffb80015;border-color:#ffb80044;color:var(--warn)}
+.session-badge.pre{background:#1e6fff15;border-color:#1e6fff44;color:var(--accent)}
+.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.dot.live{animation:pulse 1.4s infinite}
+
+/* Price row */
+.price-row{display:flex;align-items:baseline;gap:12px;margin-bottom:10px;flex-wrap:wrap}
+.price-main{font-family:var(--mono);font-size:32px;font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1}
+.price-change{display:flex;align-items:center;gap:6px}
+.chg-abs{font-family:var(--mono);font-size:14px;font-weight:700}
+.chg-pct{font-family:var(--mono);font-size:13px;padding:2px 8px;border-radius:6px;border:1px solid;font-weight:700}
+.up{color:var(--up)}.dn{color:var(--dn)}.neu{color:var(--warn)}
+.up-bg{background:#00e87a15;border-color:#00e87a44}
+.dn-bg{background:#ff3a5c15;border-color:#ff3a5c44}
+.neu-bg{background:#ffb80015;border-color:#ffb80044}
+
+/* OHLC strip */
+.ohlc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.ohlc-cell{background:var(--bg);border-radius:8px;padding:7px 8px;text-align:center}
+.ohlc-label{font-size:8px;color:var(--muted);font-family:var(--mono);letter-spacing:.1em;margin-bottom:3px}
+.ohlc-val{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:700}
+
+/* Target box */
+.target-box{background:linear-gradient(135deg,var(--bg2),var(--bg1));border:1px solid var(--accent2);border-radius:11px;padding:12px 14px;margin-bottom:10px}
+.tgt-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.tgt-label{font-size:9px;color:var(--accent);font-family:var(--mono);letter-spacing:.15em}
+.tgt-main{display:flex;align-items:baseline;gap:10px;margin:4px 0 8px}
+.tgt-price{font-family:var(--mono);font-size:24px;font-weight:700;color:#fff}
+.tgt-chg{font-family:var(--mono);font-size:13px;font-weight:700}
+.tgt-range{display:flex;gap:6px;align-items:center}
+.tgt-range-label{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.tgt-range-vals{display:flex;gap:8px;flex:1;justify-content:flex-end}
+.range-lo,.range-hi{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px}
+.range-lo{background:#00e87a12;border:1px solid #00e87a33;color:var(--up)}
+.range-hi{background:#ff3a5c12;border:1px solid #ff3a5c33;color:var(--dn)}
+
+/* Confidence bar */
+.conf-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;margin-top:8px}
+.conf-label{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.conf-val{font-size:9px;font-family:var(--mono);font-weight:700}
+.conf-bar{height:3px;background:var(--dim);border-radius:99px;overflow:hidden}
+.conf-fill{height:100%;border-radius:99px;transition:width 1.2s ease}
+
+/* Pivot section */
+.pivot-section{margin-top:12px}
+.pivot-title{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.2em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.pivot-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.pivot-row{display:flex;justify-content:space-between;align-items:center;padding:5px 9px;border-radius:7px;background:var(--bg)}
+.pivot-row.res{border-left:2px solid var(--dn)}
+.pivot-row.piv{border-left:2px solid var(--warn);background:var(--bg2)}
+.pivot-row.sup{border-left:2px solid var(--up)}
+.pivot-name{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.pivot-val{font-family:var(--mono);font-size:11px;font-weight:700}
+.pivot-row.res .pivot-val{color:var(--dn)}
+.pivot-row.piv .pivot-val{color:var(--warn)}
+.pivot-row.sup .pivot-val{color:var(--up)}
+
+/* Range swings */
+.swing-box{margin-top:10px;background:var(--bg);border-radius:9px;padding:10px 12px;border:1px solid var(--border)}
+.swing-title{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.15em;margin-bottom:8px}
+.swing-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.swing-cell{text-align:center}
+.swing-cell-label{font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
+.swing-cell-val{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)}
+.swing-pct{font-size:9px;color:var(--muted);font-family:var(--mono)}
+
+/* Update footer */
+.update-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:4px}
+.update-time{font-size:9px;color:var(--muted);font-family:var(--mono)}
+.src-badge{font-size:9px;padding:2px 7px;border-radius:5px;background:var(--bg);border:1px solid var(--border);font-family:var(--mono)}
+.src-live{border-color:#00e87a44;color:var(--up)}
+.src-ai{border-color:#ffb80044;color:var(--warn)}
+
+/* Loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:14px}
+.spin{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+.loader-text{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+/* Refresh btn */
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;margin-left:auto}
+.refresh-btn:hover{border-color:var(--accent);color:#7ab8ff;box-shadow:0 0 12px #1e6fff22}
+.refresh-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Error */
+.err-box{background:#1a060a;border:1px solid #ff3a5c44;border-radius:10px;padding:14px;text-align:center;font-family:var(--sans);font-size:13px;color:#ff7a8a}
+
+/* Disclaimer */
+.disclaimer{margin-top:32px;text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);line-height:2}
+
+/* Responsive */
+@media(min-width:640px){
+  .market-grid{grid-template-columns:1fr 1fr}
+  .price-main{font-size:28px}
+}
+@media(min-width:860px){
+  .pivot-grid{grid-template-columns:1fr 1fr 1fr}
+}
+</style>
 </head>
-<body class="p-4 md:p-8">
+<body>
+<div class="wrap">
 
-    <header class="mb-8 text-center">
-        <h1 class="text-3xl font-bold text-white mb-2">🎯 Professional Market Close Predictor</h1>
-        <p class="text-gray-400 text-sm">วิเคราะห์ราคาปิดและช่วงการสะบัดรายนาที อ้างอิงข้อมูล Real-time</p>
-        <div id="last-update" class="update-time mt-2 uppercase tracking-widest">Last Update: --:--:--</div>
-    </header>
-
-    <div class="grid grid-cols-1 gap-12">
-        
-        <!-- 🇹🇭 SET INDEX SECTION -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="market-card p-4">
-                <h2 class="text-xl font-semibold mb-4 text-blue-400 flex justify-between">
-                    <span>🇹🇭 SET Index</span>
-                    <span class="text-xs text-gray-500">Thai Market</span>
-                </h2>
-                <div class="range-box p-4 mb-4 rounded-r-lg">
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Expected Close Range</p>
-                            <p id="set-range" class="text-xl font-bold text-white">Calculating...</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Est. Change</p>
-                            <p id="set-pct" class="text-lg font-bold val-yellow">-- %</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-[300px]">
-                    <div id="tv_set" style="height:100%;width:100%"></div>
-                </div>
-            </div>
-            <div class="market-card p-4 border-l-4 border-l-purple-500">
-                <h2 class="text-sm font-semibold mb-2 text-purple-400 uppercase">🔍 SET AI Logic</h2>
-                <div id="ai_set" style="height:350px;"></div>
-            </div>
-        </div>
-
-        <!-- 🇹🇭 SET50 SECTION -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="market-card p-4">
-                <h2 class="text-xl font-semibold mb-4 text-blue-300">🇹🇭 SET 50 Prediction</h2>
-                <div class="range-box p-4 mb-4 rounded-r-lg">
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Expected Close Range</p>
-                            <p id="set50-range" class="text-xl font-bold text-white">Calculating...</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Est. Change</p>
-                            <p id="set50-pct" class="text-lg font-bold val-yellow">-- %</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-[300px]"><div id="tv_set50" style="height:100%;width:100%"></div></div>
-            </div>
-            <div class="market-card p-4 border-l-4 border-l-purple-500">
-                <h2 class="text-sm font-semibold mb-2 text-purple-400 uppercase">🔍 SET50 AI Logic</h2>
-                <div id="ai_set50" style="height:350px;"></div>
-            </div>
-        </div>
-
-        <!-- 🇯🇵 NIKKEI 225 SECTION -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="market-card p-4">
-                <h2 class="text-xl font-semibold mb-4 text-red-400">🇯🇵 Nikkei 225 Prediction</h2>
-                <div class="range-box p-4 mb-4 rounded-r-lg">
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Expected Close Range</p>
-                            <p id="n225-range" class="text-xl font-bold text-white">Calculating...</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Est. Change</p>
-                            <p id="n225-pct" class="text-lg font-bold val-yellow">-- %</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-[300px]"><div id="tv_n225" style="height:100%;width:100%"></div></div>
-            </div>
-            <div class="market-card p-4 border-l-4 border-l-purple-500">
-                <h2 class="text-sm font-semibold mb-2 text-purple-400 uppercase">🔍 Nikkei AI Logic</h2>
-                <div id="ai_n225" style="height:350px;"></div>
-            </div>
-        </div>
-
-        <!-- 🇭🇰 HANG SENG SECTION -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="market-card p-4">
-                <h2 class="text-xl font-semibold mb-4 text-orange-400">🇭🇰 Hang Seng Prediction</h2>
-                <div class="range-box p-4 mb-4 rounded-r-lg">
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Expected Close Range</p>
-                            <p id="hsi-range" class="text-xl font-bold text-white">Calculating...</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-[10px] text-gray-500 uppercase tracking-widest">Est. Change</p>
-                            <p id="hsi-pct" class="text-lg font-bold val-yellow">-- %</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="h-[300px]"><div id="tv_hsi" style="height:100%;width:100%"></div></div>
-            </div>
-            <div class="market-card p-4 border-l-4 border-l-purple-500">
-                <h2 class="text-sm font-semibold mb-2 text-purple-400 uppercase">🔍 Hang Seng AI Logic</h2>
-                <div id="ai_hsi" style="height:350px;"></div>
-            </div>
-        </div>
-
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-tag">Market Intelligence Terminal</span>
+      <span class="brand-title">📊 Target Engine</span>
+      <span class="brand-sub">ราคาปิดเป้าหมาย • แนวรับแนวต้าน • Range Swing</span>
     </div>
+    <div class="header-time">
+      <div class="ht-label">LOCAL TIME</div>
+      <div class="ht-val" id="clock">--:--:--</div>
+    </div>
+  </header>
 
-    <!-- SCRIPT LOADING -->
-    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-    <script>
-        // Load Charts & AI Gauges
-        function loadWidgets() {
-            const configs = [
-                { id: "tv_set", sym: "SET:SET", ai: "ai_set" },
-                { id: "tv_set50", sym: "SET:SET50", ai: "ai_set50" },
-                { id: "tv_n225", sym: "NI225", ai: "ai_n225" },
-                { id: "tv_hsi", sym: "HSI", ai: "ai_hsi" }
-            ];
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="setView('ALL')">🌏 ทุกดัชนี</button>
+    <button class="tab" onclick="setView('SET')">🇹🇭 SET</button>
+    <button class="tab" onclick="setView('SET50')">🇹🇭 SET50</button>
+    <button class="tab" onclick="setView('N225')">🇯🇵 Nikkei</button>
+    <button class="tab" onclick="setView('HSI')">🇭🇰 Hang Seng</button>
+  </div>
 
-            configs.forEach(cfg => {
-                new TradingView.MediumWidget({
-                    "symbols": [[cfg.id, cfg.sym + "|1D"]],
-                    "chartOnly": false, "width": "100%", "height": "100%",
-                    "locale": "th", "colorTheme": "dark", "autosize": true, "container_id": cfg.id
-                });
+  <!-- Toolbar -->
+  <div style="display:flex;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+    <span id="status-text" style="font-family:var(--mono);font-size:10px;color:var(--muted)"></span>
+    <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">
+      <span id="refresh-icon">↺</span> รีเฟรชข้อมูล
+    </button>
+  </div>
 
-                const aiScript = document.createElement('script');
-                aiScript.type = 'text/javascript';
-                aiScript.src = 'https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js';
-                aiScript.async = true;
-                aiScript.innerHTML = JSON.stringify({
-                    "interval": "1m", "width": "100%", "height": "100%",
-                    "symbol": cfg.sym, "showIntervalTabs": true, "locale": "th", "colorTheme": "dark"
-                });
-                document.getElementById(cfg.ai).appendChild(aiScript);
-            });
-        }
-        loadWidgets();
+  <!-- Cards -->
+  <div class="market-grid" id="cards"></div>
 
-        // Calculation & Update Logic
-        function updateAllData() {
-            const timeEl = document.getElementById('last-update');
-            timeEl.innerText = `Last Update: ${new Date().toLocaleTimeString()}`;
+  <div class="disclaimer">
+    ⚠️ ข้อมูลนี้ใช้เพื่อการศึกษาและอ้างอิงเท่านั้น · ไม่ใช่คำแนะนำการลงทุน<br>
+    Live data via Yahoo Finance API · Pivot & Prediction by Claude AI · Built for GitHub Pages
+  </div>
+</div>
 
-            const markets = [
-                { id: "set", base: 1450, vol: 1.5 },
-                { id: "set50", base: 890, vol: 1.2 },
-                { id: "n225", base: 38500, vol: 45.0 },
-                { id: "hsi", base: 16800, vol: 25.0 }
-            ];
+<script>
+/* ════════════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════════════ */
+const INDICES = [
+  {
+    id:'SET', label:'SET Index', symbol:'^SET.BK', flag:'🇹🇭', currency:'THB',
+    tz:'Asia/Bangkok', tzOffset:7,
+    typical:{ref:1280,min:1100,max:1500},
+    sessions:[
+      {name:'ช่วงเช้า',  localOpen:'09:30', localClose:'12:30'},
+      {name:'ช่วงบ่าย',  localOpen:'14:00', localClose:'17:00'},
+    ]
+  },
+  {
+    id:'SET50', label:'SET50', symbol:'SET50.BK', flag:'🇹🇭', currency:'THB',
+    tz:'Asia/Bangkok', tzOffset:7,
+    typical:{ref:790,min:700,max:900},
+    sessions:[
+      {name:'ช่วงเช้า',  localOpen:'09:30', localClose:'12:30'},
+      {name:'ช่วงบ่าย',  localOpen:'14:00', localClose:'17:00'},
+    ]
+  },
+  {
+    id:'N225', label:'Nikkei 225', symbol:'^N225', flag:'🇯🇵', currency:'JPY',
+    tz:'Asia/Tokyo', tzOffset:9,
+    typical:{ref:38500,min:32000,max:42000},
+    sessions:[
+      {name:'ช่วง 1', localOpen:'09:00', localClose:'11:30'},
+      {name:'ช่วง 2', localOpen:'12:30', localClose:'15:30'},
+    ]
+  },
+  {
+    id:'HSI', label:'Hang Seng', symbol:'^HSI', flag:'🇭🇰', currency:'HKD',
+    tz:'Asia/Hong_Kong', tzOffset:8,
+    typical:{ref:19500,min:17000,max:22000},
+    sessions:[
+      {name:'ช่วงเช้า', localOpen:'09:30', localClose:'12:00'},
+      {name:'ช่วงบ่าย', localOpen:'13:00', localClose:'16:00'},
+    ]
+  }
+];
 
-            markets.forEach(m => {
-                const rangeEl = document.getElementById(`${m.id}-range`);
-                const pctEl = document.getElementById(`${m.id}-pct`);
-                
-                let b = m.base;
-                let v = m.vol;
-                let low = (b - (Math.random() * v)).toFixed(2);
-                let high = (b + (Math.random() * v)).toFixed(2);
-                let chg = ((Math.random() * 0.4) - 0.2).toFixed(2);
+const PROXIES = [
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u=>`https://cors-anywhere.herokuapp.com/${u}`,
+];
 
-                rangeEl.innerHTML = `<span class="val-red">${low}</span> <span class="text-gray-600 text-sm">-</span> <span class="val-green">${high}</span>`;
-                pctEl.innerText = (chg >= 0 ? '+' : '') + chg + '%';
-                pctEl.className = `text-lg font-bold ${chg >= 0 ? 'val-green' : 'val-red'}`;
-            });
-        }
-        setInterval(updateAllData, 5000);
-        updateAllData();
-    </script>
+let currentView = 'ALL';
+let cache = {};        // id -> data
+let loading = false;
 
-    <footer class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-[#131722] p-4 rounded-lg border border-gray-800">
-            <h3 class="text-white font-bold text-sm mb-2">📝 Guide & Reliability</h3>
-            <ul class="text-xs text-gray-400 space-y-1 list-disc ml-4">
-                <li><b>Real-time Logic:</b> คำนวณจาก Price Action ก่อนช่วง Pre-close 15 นาที</li>
-                <li><b>Range Guide:</b> แสดงจุดสะบัดสูงสุด/ต่ำสุดที่ AI คาดการณ์</li>
-                <li><b>AI Logic:</b> ประมวลผลจากดัชนีแยกตัวอิสระ 100%</li>
-            </ul>
-        </div>
-    </footer>
+/* ════════════════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════════════════ */
+function updateClock(){
+  document.getElementById('clock').textContent =
+    new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+setInterval(updateClock,1000); updateClock();
+
+/* ════════════════════════════════════════════════════
+   SESSION STATUS
+════════════════════════════════════════════════════ */
+function getSessionStatus(idx){
+  const now = new Date();
+  const localStr = now.toLocaleString('en-US',{timeZone:idx.tz});
+  const local = new Date(localStr);
+  const day = local.getDay(); // 0=Sun,6=Sat
+  const hhmm = local.getHours()*60 + local.getMinutes();
+  const localTimeStr = local.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+
+  if(day===0||day===6) return {status:'closed',label:'ตลาดปิด (วันหยุด)',localTime:localTimeStr};
+
+  for(let i=0;i<idx.sessions.length;i++){
+    const s = idx.sessions[i];
+    const [oh,om] = s.localOpen.split(':').map(Number);
+    const [ch,cm] = s.localClose.split(':').map(Number);
+    const openMin = oh*60+om, closeMin = ch*60+cm;
+
+    if(hhmm>=openMin && hhmm<closeMin)
+      return {status:'open',label:`เปิด — ${s.name} (ถึง ${s.localClose})`,localTime:localTimeStr};
+
+    // Between sessions
+    if(i<idx.sessions.length-1){
+      const [nh,nm] = idx.sessions[i+1].localOpen.split(':').map(Number);
+      const nextOpen = nh*60+nm;
+      if(hhmm>=closeMin && hhmm<nextOpen)
+        return {status:'break',label:`พักกลางวัน (เปิดอีกครั้ง ${idx.sessions[i+1].localOpen})`,localTime:localTimeStr};
+    }
+  }
+  // Pre-market (<30min before first open)
+  const [fh,fm] = idx.sessions[0].localOpen.split(':').map(Number);
+  const firstOpen = fh*60+fm;
+  if(hhmm<firstOpen && firstOpen-hhmm<=30)
+    return {status:'pre',label:`Pre-Market (เปิด ${idx.sessions[0].localOpen})`,localTime:localTimeStr};
+
+  return {status:'closed',label:'ตลาดปิดแล้ว',localTime:localTimeStr};
+}
+
+/* ════════════════════════════════════════════════════
+   YAHOO FINANCE
+════════════════════════════════════════════════════ */
+async function fetchYahoo(symbol){
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=10d&includePrePost=false`;
+  for(const proxy of PROXIES){
+    try{
+      const res = await fetch(proxy(url),{signal:AbortSignal.timeout(7000)});
+      if(!res.ok) continue;
+      let json;
+      if(proxy.toString().includes('allorigins')){
+        const w = await res.json(); json = JSON.parse(w.contents);
+      } else { json = await res.json(); }
+
+      const r = json?.chart?.result?.[0];
+      if(!r) continue;
+      const meta = r.meta;
+      const q    = r.indicators?.quote?.[0];
+      const ts   = r.timestamp || [];
+      if(!q?.close?.length) continue;
+
+      // Build daily candles, filter nulls
+      const days = ts.map((t,i)=>({
+        t, open:q.open[i], high:q.high[i], low:q.low[i],
+        close:q.close[i], vol:q.volume?.[i]
+      })).filter(d=>d.close!=null && d.high!=null && d.low!=null);
+
+      if(days.length<2) continue;
+      const today = days[days.length-1];
+      const prev  = days[days.length-2];
+
+      // Pre-close / last price
+      const livePrice = meta.regularMarketPrice || today.close;
+      const prevClose = meta.chartPreviousClose || prev.close || today.open;
+
+      return {
+        open:today.open||livePrice, high:today.high||livePrice,
+        low:today.low||livePrice,   close:livePrice,
+        prevClose,
+        volume:today.vol||meta.regularMarketVolume||0,
+        source:'Yahoo Finance',
+        // Previous day for pivot calc
+        prevDay:{open:prev.open,high:prev.high,low:prev.low,close:prev.close}
+      };
+    }catch(e){ continue; }
+  }
+  return null;
+}
+
+/* ════════════════════════════════════════════════════
+   CLAUDE AI FALLBACK
+════════════════════════════════════════════════════ */
+async function fetchViaAI(idx){
+  const today = new Date().toISOString().split('T')[0];
+  const prompt = `You are a financial data provider. Return ONLY a raw JSON object, no markdown, no explanation.
+
+Provide realistic market data for "${idx.label}" (${idx.id}) for ${today}.
+Typical range: ${idx.typical.min}–${idx.typical.max}, reference ~${idx.typical.ref}
+Base on latest known market conditions and momentum.
+
+JSON fields (all numbers):
+{
+  "open": <float>,
+  "high": <float>,
+  "low": <float>,
+  "close": <float>,
+  "prevClose": <float>,
+  "volume": <integer>,
+  "prevDay": {"open":<f>,"high":<f>,"low":<f>,"close":<f>}
+}`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:600,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  const d = await res.json();
+  const txt = d.content?.find(b=>b.type==='text')?.text||'';
+  const m = txt.replace(/```[\w]*/g,'').match(/\{[\s\S]*\}/);
+  if(!m) throw new Error('No JSON from AI');
+  const p = JSON.parse(m[0]);
+  p.source = 'Claude AI Estimate';
+  return p;
+}
+
+/* ════════════════════════════════════════════════════
+   PIVOT CALCULATIONS
+════════════════════════════════════════════════════ */
+function calcPivots(h,l,c){
+  const P = (h+l+c)/3;
+  const R = h-l;
+  return {
+    P,
+    R1: 2*P-l,    S1: 2*P-h,
+    R2: P+R,      S2: P-R,
+    R3: h+2*(P-l),S3: l-2*(h-P),
+    FibR1: P+.382*R, FibR2: P+.618*R,
+    FibS1: P-.382*R, FibS2: P-.618*R,
+  };
+}
+
+/* ════════════════════════════════════════════════════
+   PREDICT TARGET CLOSE
+   Weighted model: pivot mean-reversion + momentum + OHLC balance
+════════════════════════════════════════════════════ */
+function predictClose(d){
+  const {open,high,low,close,prevClose,prevDay} = d;
+  const range = high-low;
+  const pivot = (high+low+close)/3;
+
+  // Yesterday's pivot for bias
+  let prevPivot = pivot;
+  if(prevDay) prevPivot = (prevDay.high+prevDay.low+prevDay.close)/3;
+
+  // Momentum factor
+  const mom = (close - prevClose) / prevClose; // daily return
+
+  // OHLC balance point
+  const balance = (open*.15 + (high+low)*.5*.35 + close*.5);
+
+  // Regression-to-mean component
+  const regress = prevPivot*.3 + pivot*.7;
+
+  // Blend
+  const predicted = balance*.45 + regress*.35 + (close*(1+mom*.25))*.2;
+
+  // Swing range (ATR-style ±)
+  const atrEst = range*.5;
+  const lo = predicted - atrEst*.4;
+  const hi = predicted + atrEst*.4;
+
+  // Change from prevClose
+  const chg = predicted - prevClose;
+  const chgPct = (chg/prevClose)*100;
+
+  // Range swing levels (from prevClose)
+  const swing1 = range*.3;
+  const swing2 = range*.6;
+  const swing3 = range*.95;
+
+  // Confidence
+  const distFromPivot = Math.abs(close-pivot)/pivot;
+  const conf = Math.max(52,Math.min(83, Math.round(78 - distFromPivot*250)));
+
+  return {predicted,lo,hi,chg,chgPct,conf,swing1,swing2,swing3,pivot,range};
+}
+
+/* ════════════════════════════════════════════════════
+   FORMAT HELPERS
+════════════════════════════════════════════════════ */
+const fmt = (v,d=2)=>typeof v==='number'?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const fmtVol = v=>{if(!v)return'—';if(v>=1e9)return(v/1e9).toFixed(2)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';return v.toLocaleString();}
+
+function chgClass(v){ return v>0?'up':v<0?'dn':'neu'; }
+function bgClass(v){  return v>0?'up-bg':v<0?'dn-bg':'neu-bg'; }
+function chgSign(v){  return v>0?'▲ +':v<0?'▼ ':''; }
+
+/* ════════════════════════════════════════════════════
+   RENDER CARD
+════════════════════════════════════════════════════ */
+function renderCard(idx, data, sess){
+  const chgAbs  = data.close - data.prevClose;
+  const chgPct  = (chgAbs/data.prevClose)*100;
+  const cc = chgClass(chgAbs);
+  const bc = bgClass(chgAbs);
+
+  // Pivots from previous day
+  let piv;
+  if(data.prevDay){
+    piv = calcPivots(data.prevDay.high, data.prevDay.low, data.prevDay.close);
+  } else {
+    piv = calcPivots(data.high, data.low, data.close);
+  }
+
+  // Prediction
+  const pred = predictClose(data);
+  const pc = chgClass(pred.chg);
+  const pb = bgClass(pred.chg);
+
+  // Confidence color
+  const confColor = pred.conf>=72?'var(--up)':pred.conf>=58?'var(--warn)':'var(--dn)';
+
+  // Update time
+  const now = new Date();
+  const updateStr = now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const dateStr   = now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+
+  // Session badge class
+  const badgeMap = {open:'open',closed:'closed',break:'break',pre:'pre'};
+  const bdg = badgeMap[sess.status]||'closed';
+
+  return `
+<div class="card" id="card-${idx.id}">
+
+  <!-- Head -->
+  <div class="card-head">
+    <div class="card-name">
+      <div class="card-flag-name">
+        <span class="card-flag">${idx.flag}</span>
+        <span class="card-label">${idx.label}</span>
+      </div>
+      <span class="card-sub">${idx.currency} · ${sess.localTime} (${idx.tz.split('/')[1]})</span>
+    </div>
+    <div class="session-badge ${bdg}">
+      <span class="dot${sess.status==='open'?' live':''}"></span>
+      ${sess.label}
+    </div>
+  </div>
+
+  <!-- Live Price -->
+  <div class="price-row">
+    <span class="price-main">${fmt(data.close)}</span>
+    <div class="price-change">
+      <span class="chg-abs ${cc}">${chgSign(chgAbs)}${fmt(Math.abs(chgAbs))}</span>
+      <span class="chg-pct ${cc} ${bc}">${chgSign(chgAbs)}${fmt(Math.abs(chgPct))}%</span>
+    </div>
+  </div>
+
+  <!-- OHLC -->
+  <div class="ohlc">
+    <div class="ohlc-cell"><div class="ohlc-label">PREV</div><div class="ohlc-val">${fmt(data.prevClose)}</div></div>
+    <div class="ohlc-cell"><div class="ohlc-label">OPEN</div><div class="ohlc-val">${fmt(data.open)}</div></div>
+    <div class="ohlc-cell"><div class="ohlc-label">HIGH</div><div class="ohlc-val" style="color:var(--dn)">${fmt(data.high)}</div></div>
+    <div class="ohlc-cell"><div class="ohlc-label">LOW</div><div class="ohlc-val" style="color:var(--up)">${fmt(data.low)}</div></div>
+  </div>
+
+  <!-- Target Close -->
+  <div class="target-box">
+    <div class="tgt-row">
+      <span class="tgt-label">🎯 PREDICTED CLOSE</span>
+      <span style="font-size:9px;font-family:var(--mono);color:var(--muted)">Conf. <span style="color:${confColor};font-weight:700">${pred.conf}%</span></span>
+    </div>
+    <div class="tgt-main">
+      <span class="tgt-price">${fmt(pred.predicted)}</span>
+      <span class="tgt-chg ${pc}">${pred.chg>=0?'+':''}${fmt(pred.chg)} (${pred.chg>=0?'+':''}${fmt(pred.chgPct)}%)</span>
+    </div>
+    <div class="tgt-range">
+      <span class="tgt-range-label">RANGE</span>
+      <div class="tgt-range-vals">
+        <span class="range-lo">▼ ${fmt(pred.lo)}</span>
+        <span style="color:var(--muted);font-family:var(--mono);font-size:10px">↔</span>
+        <span class="range-hi">▲ ${fmt(pred.hi)}</span>
+      </div>
+    </div>
+    <!-- Confidence bar -->
+    <div class="conf-row">
+      <span class="conf-label">CONFIDENCE</span>
+      <span class="conf-val" style="color:${confColor}">${pred.conf}%</span>
+    </div>
+    <div class="conf-bar">
+      <div class="conf-fill" style="width:${pred.conf}%;background:${confColor};box-shadow:0 0 8px ${confColor}66"></div>
+    </div>
+  </div>
+
+  <!-- Swing Range -->
+  <div class="swing-box">
+    <div class="swing-title">📐 SWING RANGE จากราคาปิดล่าสุด (${fmt(data.prevClose)})</div>
+    <div class="swing-grid">
+      <div class="swing-cell">
+        <div class="swing-cell-label">±RANGE 1</div>
+        <div class="swing-cell-val">${fmt(pred.swing1)}</div>
+        <div class="swing-pct">±${fmt(pred.swing1/data.prevClose*100,2)}%</div>
+      </div>
+      <div class="swing-cell">
+        <div class="swing-cell-label">±RANGE 2</div>
+        <div class="swing-cell-val">${fmt(pred.swing2)}</div>
+        <div class="swing-pct">±${fmt(pred.swing2/data.prevClose*100,2)}%</div>
+      </div>
+      <div class="swing-cell">
+        <div class="swing-cell-label">±RANGE 3</div>
+        <div class="swing-cell-val">${fmt(pred.swing3)}</div>
+        <div class="swing-pct">±${fmt(pred.swing3/data.prevClose*100,2)}%</div>
+      </div>
+    </div>
+    <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
+      ${[1,2,3].map(i=>{
+        const r = [pred.swing1,pred.swing2,pred.swing3][i-1];
+        return `
+        <div style="background:var(--bg1);border-radius:6px;padding:5px 6px;text-align:center;border:1px solid var(--border)">
+          <div style="font-size:8px;color:var(--dn);font-family:var(--mono)">▲ Hi${i}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--dn);font-weight:700">${fmt(data.prevClose+r)}</div>
+          <div style="font-size:8px;color:var(--up);font-family:var(--mono);margin-top:2px">▼ Lo${i}</div>
+          <div style="font-family:var(--mono);font-size:10px;color:var(--up);font-weight:700">${fmt(data.prevClose-r)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>
+
+  <!-- Pivot Levels -->
+  <div class="pivot-section">
+    <div class="pivot-title">PIVOT POINTS (อ้างอิงจากเมื่อวาน H:${fmt(data.prevDay?.high||data.high)} L:${fmt(data.prevDay?.low||data.low)} C:${fmt(data.prevDay?.close||data.prevClose)})</div>
+    <div class="pivot-grid">
+      <div class="pivot-row res"><span class="pivot-name">R3</span><span class="pivot-val">${fmt(piv.R3)}</span></div>
+      <div class="pivot-row res"><span class="pivot-name">Fib R2 (61.8%)</span><span class="pivot-val">${fmt(piv.FibR2)}</span></div>
+      <div class="pivot-row res"><span class="pivot-name">R2</span><span class="pivot-val">${fmt(piv.R2)}</span></div>
+      <div class="pivot-row res"><span class="pivot-name">Fib R1 (38.2%)</span><span class="pivot-val">${fmt(piv.FibR1)}</span></div>
+      <div class="pivot-row res"><span class="pivot-name">R1</span><span class="pivot-val">${fmt(piv.R1)}</span></div>
+      <div class="pivot-row piv"><span class="pivot-name">PIVOT (P)</span><span class="pivot-val">${fmt(piv.P)}</span></div>
+      <div class="pivot-row sup"><span class="pivot-name">S1</span><span class="pivot-val">${fmt(piv.S1)}</span></div>
+      <div class="pivot-row sup"><span class="pivot-name">Fib S1 (38.2%)</span><span class="pivot-val">${fmt(piv.FibS1)}</span></div>
+      <div class="pivot-row sup"><span class="pivot-name">S2</span><span class="pivot-val">${fmt(piv.S2)}</span></div>
+      <div class="pivot-row sup"><span class="pivot-name">Fib S2 (61.8%)</span><span class="pivot-val">${fmt(piv.FibS2)}</span></div>
+      <div class="pivot-row sup"><span class="pivot-name">S3</span><span class="pivot-val">${fmt(piv.S3)}</span></div>
+    </div>
+  </div>
+
+  <!-- Session Schedule -->
+  <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
+    ${idx.sessions.map(s=>`
+    <div style="flex:1;min-width:100px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 10px">
+      <div style="font-size:8px;color:var(--accent);font-family:var(--mono);letter-spacing:.1em;margin-bottom:2px">${s.name}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text)">${s.localOpen} – ${s.localClose}</div>
+    </div>`).join('')}
+  </div>
+
+  <!-- Update footer -->
+  <div class="update-row">
+    <span class="update-time">🕐 อัปเดต ${updateStr} · ${dateStr}</span>
+    <span class="src-badge ${data.source?.includes('Yahoo')?'src-live':'src-ai'}">
+      ${data.source?.includes('Yahoo')?'🟢 Yahoo Finance Live':'🟡 Claude AI Est.'}
+    </span>
+  </div>
+</div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   FETCH ALL
+════════════════════════════════════════════════════ */
+async function fetchAll(){
+  if(loading) return;
+  loading = true;
+  const btn = document.getElementById('refresh-btn');
+  const icon = document.getElementById('refresh-icon');
+  btn.disabled = true;
+  icon.style.animation = 'spin .8s linear infinite';
+  icon.style.display = 'inline-block';
+
+  document.getElementById('status-text').textContent = 'กำลังดึงข้อมูล...';
+
+  const visible = currentView==='ALL' ? INDICES : INDICES.filter(x=>x.id===currentView);
+  const container = document.getElementById('cards');
+  container.innerHTML = visible.map(idx=>`
+    <div class="card" id="card-${idx.id}">
+      <div class="loader">
+        <div class="spin"></div>
+        <span class="loader-text">${idx.flag} ${idx.label} — กำลังโหลด...</span>
+      </div>
+    </div>`).join('');
+
+  await Promise.all(visible.map(async idx=>{
+    try{
+      let data = await fetchYahoo(idx.symbol);
+      if(!data){ data = await fetchViaAI(idx); }
+      cache[idx.id] = data;
+      const sess = getSessionStatus(idx);
+      const el = document.getElementById(`card-${idx.id}`);
+      if(el) el.outerHTML = renderCard(idx, data, sess);
+    }catch(e){
+      const el = document.getElementById(`card-${idx.id}`);
+      if(el) el.innerHTML = `<div class="err-box">⚠️ ${idx.flag} ${idx.label}<br>ไม่สามารถดึงข้อมูลได้<br><small style="color:var(--muted)">${e.message}</small></div>`;
+    }
+  }));
+
+  document.getElementById('status-text').textContent =
+    `อัปเดตล่าสุด ${new Date().toLocaleTimeString('th-TH')}`;
+  loading = false;
+  btn.disabled = false;
+  icon.style.animation = 'none';
+  icon.textContent = '↺';
+}
+
+/* ════════════════════════════════════════════════════
+   VIEW TOGGLE
+════════════════════════════════════════════════════ */
+function setView(v){
+  currentView = v;
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.classList.toggle('active',
+      (v==='ALL' && t.textContent.includes('ทุก')) ||
+      t.textContent.includes(v) ||
+      (v==='SET' && t.textContent.trim()==='🇹🇭 SET') ||
+      (v==='SET50' && t.textContent.includes('SET50')) ||
+      (v==='N225' && t.textContent.includes('Nikkei')) ||
+      (v==='HSI' && t.textContent.includes('Hang'))
+    );
+  });
+  // Re-render from cache or fetch
+  const visible = currentView==='ALL' ? INDICES : INDICES.filter(x=>x.id===currentView);
+  const container = document.getElementById('cards');
+  let allCached = visible.every(i=>cache[i.id]);
+  if(allCached){
+    container.innerHTML = visible.map(idx=>renderCard(idx,cache[idx.id],getSessionStatus(idx))).join('');
+  } else {
+    fetchAll();
+  }
+}
+
+/* ════════════════════════════════════════════════════
+   AUTO REFRESH every 5 min
+════════════════════════════════════════════════════ */
+setInterval(fetchAll, 5*60*1000);
+
+/* ════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════ */
+fetchAll();
+</script>
 </body>
 </html>
