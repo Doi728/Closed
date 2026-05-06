@@ -262,6 +262,7 @@ const INDICES = [
     id: 'DJI', label: 'Dow Jones', flag: '🇺🇸', cur: 'USD',
     tz: 'America/New_York', tzOff: -4,
     finnhubSymbol: 'DIA',
+    scale: 101.4, // ตัวคูณประมาณการเพื่อให้ได้หลักหมื่นตามดัชนีจริง
     seed: { open:38650.0, high:38820.0, low:38500.0, close:38675.0, prevClose:38612.0,
              vol:4500000, note:'Historical Average' },
     sessions: [{ name:'Reg. Session', open:'09:30', close:'16:00' }],
@@ -270,6 +271,7 @@ const INDICES = [
     id: 'N225', label: 'Nikkei 225', flag: '🇯🇵', cur: 'JPY',
     tz: 'Asia/Tokyo', tzOff: 9,
     finnhubSymbol: 'EWJ',
+    scale: 545.5, // ตัวคูณประมาณการสำหรับ Nikkei
     seed: { open:38250.0, high:38400.0, low:38100.0, close:38210.0, prevClose:38150.0,
              vol:680000, note:'Historical Average' },
     sessions: [{ name:'ช่วง 1', open:'09:00', close:'11:30' }, { name:'ช่วง 2', open:'12:30', close:'15:30' }],
@@ -278,6 +280,7 @@ const INDICES = [
     id: 'HSI', label: 'Hang Seng', flag: '🇭🇰', cur: 'HKD',
     tz: 'Asia/Hong_Kong', tzOff: 8,
     finnhubSymbol: 'EWH',
+    scale: 1045.0, // ตัวคูณประมาณการสำหรับ Hang Seng
     seed: { open:18500.0, high:18650.0, low:18400.0, close:18550.0, prevClose:18420.0,
              vol:1450000000, note:'Historical Average' },
     sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:00' }, { name:'ช่วงบ่าย', open:'13:00', close:'16:00' }],
@@ -380,13 +383,22 @@ async function loadIndex(idx) {
       fetchFinnhub(idx.finnhubSymbol),
       fetchFinnhubCandles(idx.finnhubSymbol).catch(() => null),
     ]);
-    const close = q.c, open = q.o, high = q.h, low = q.l, prevClose = q.pc;
+    
+    // ใช้ scale เพื่อปรับราคา ETF ให้เป็นราคา Index (หลักหมื่น)
+    const m = idx.scale || 1;
+    const close = q.c * m, open = q.o * m, high = q.h * m, low = q.l * m, prevClose = q.pc * m;
     const change = close - prevClose;
     const changePct = (change / prevClose) * 100;
+    
     let prevDay = null;
     if (candles && candles.c.length >= 2) {
       const n = candles.c.length;
-      prevDay = { open: candles.o[n-2], high: candles.h[n-2], low: candles.l[n-2], close: candles.c[n-2] };
+      prevDay = { 
+        open: candles.o[n-2] * m, 
+        high: candles.h[n-2] * m, 
+        low: candles.l[n-2] * m, 
+        close: candles.c[n-2] * m 
+      };
     }
     return { open, high, low, close, prevClose, change, changePct, prevDay, live: true, src: 'Finnhub Live' };
   } catch (e) {
@@ -406,7 +418,6 @@ function calcPiv(h, l, c) {
 function predict(d) {
   const { open:o, high:h, low:l, close:c, prevClose:pc, prevDay:pd } = d;
   const rng = h - l || pc * 0.01;
-  const piv = (h + l + c) / 3;
   const pos = rng > 0 ? (c - l) / rng : .5;
   const centr = 1 - Math.abs(pos - .5) * 2;
   const conf = Math.max(52, Math.min(82, Math.round(60 + centr * 22)));
