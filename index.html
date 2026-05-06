@@ -279,39 +279,53 @@ function getSession(idx){
   return{status:'closed',label:'ตลาดปิดแล้ว',t};
 }
 
-/* ══ FETCH DATA ══ */
-const PROXIES=[
-  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+/* ══ FETCH DATA LOGIC (ROBUST VERSION) ══ */
+const PROXIES = [
+  u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
+  u => `https://thingproxy.freeboard.io/fetch/${u}`,
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`
 ];
 
 async function tryYahoo(sym){
   const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
+  
   for(const px of PROXIES){
     try{
-      const r=await fetch(px(url),{signal:AbortSignal.timeout(8000)});
+      const r = await fetch(px(url), { signal: AbortSignal.timeout(6000) });
       if(!r.ok) continue;
+      
       let j;
-      if(px.toString().includes('allorigins')){const w=await r.json();j=JSON.parse(w.contents);}
-      else j=await r.json();
+      const text = await r.text();
+      try {
+        const parsed = JSON.parse(text);
+        j = parsed.contents ? JSON.parse(parsed.contents) : parsed;
+      } catch(e) { continue; }
+
       const res=j?.chart?.result?.[0];
       if(!res) continue;
+      
       const m=res.meta, q=res.indicators?.quote?.[0];
       if(!q?.close?.length) continue;
+      
       const days=res.timestamp.map((t,i)=>({
-        o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i],v:q.volume?.[i]
-      })).filter(d=>d.c!=null&&d.h!=null);
+        o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i], v:q.volume?.[i]
+      })).filter(d=>d.c!=null && d.h!=null);
+      
+      if(days.length < 2) continue;
+      
       const td=days[days.length-1], pd=days[days.length-2];
-      const live=m.regularMarketPrice||td.c;
-      const pc=m.chartPreviousClose||pd.c;
+      const live=m.regularMarketPrice || td.c;
+      const pc=m.chartPreviousClose || pd.c;
+      
       return{
-        open:td.o||live,high:td.h||live,low:td.l||live,close:live,
-        prevClose:pc,vol:td.v||0,
-        change:live-pc,changePct:((live-pc)/pc)*100,
-        prevDay:{open:pd.o,high:pd.h,low:pd.l,close:pd.c},
-        live:true,src:'Market Sync (Official Source)'
+        open:td.o||live, high:td.h||live, low:td.l||live, close:live,
+        prevClose:pc, vol:td.v||0,
+        change:live-pc, changePct:((live-pc)/pc)*100,
+        prevDay:{open:pd.o, high:pd.h, low:pd.l, close:pd.c},
+        live:true, src:'Market Sync (Official Source)'
       };
-    }catch{continue;}
+    } catch(err) { continue; }
   }
   return null;
 }
@@ -331,40 +345,19 @@ function calcPiv(h,l,c){
     FR1:P+.382*R,FR2:P+.618*R,FS1:P-.382*R,FS2:P-.618*R};
 }
 
-/* อัปเกรด PREDICT FUNCTION เพื่อความแม่นยำและการสะบัด */
 function predict(d) {
-  const { open: o, high: h, low: l, close: c, prevClose: pc, prevDay: pd } = d;
+  const { open: o, high: h, low: l, close: c, prevClose: pc } = d;
   const rng = h - l;
   const mid = (h + l) / 2;
-  
-  // 1. คำนวณความผันผวนสัมพันธ์ (Relative Volatility)
   const vola = rng / pc; 
-  
-  // 2. ปรับน้ำหนัก Dynamic: ถ้าผันผวนสูง (vola > 1.5%) เชื่อค่า Mid (จุดสมดุล) มากขึ้น 
-  // เพื่อป้องกันการสะบัดหลอกช่วงปิดตลาด
   const weight = vola > 0.015 ? 0.45 : 0.65; 
   const pred = (c * weight) + (mid * (1 - weight));
-
-  // 3. ปรับ Swing Range ให้เป็น Dynamic ตามสัดส่วน Fibonacci 
-  // sw1 (จุดพักตัวปกติ), sw2 (จุดสะบัดแรง), sw3 (สุดขอบราคา)
-  const sw1 = rng * 0.382; 
-  const sw2 = rng * 0.618; 
-  const sw3 = rng * 1.000; 
-
-  // 4. คำนวณ Confidence Score ตามความเสถียรของราคา (Stability)
-  // ราคาที่อยู่กึ่งกลาง High-Low จะมีความเสถียรในการปิดสูงกว่าราคาที่อยู่ขอบ
+  const sw1 = rng * 0.382, sw2 = rng * 0.618, sw3 = rng * 1.000; 
   const pos = rng > 0 ? (c - l) / rng : 0.5;
   const stability = 1 - Math.abs(pos - 0.5) * 2; 
   const conf = Math.max(48, Math.min(88, Math.round(55 + (stability * 33))));
 
-  return { 
-    pred, 
-    lo: pred - sw1, 
-    hi: pred + sw1, 
-    chg: pred - pc, 
-    chgPct: ((pred - pc) / pc) * 100, 
-    sw1, sw2, sw3, conf 
-  };
+  return { pred, lo: pred - sw1, hi: pred + sw1, chg: pred - pc, chgPct: ((pred - pc) / pc) * 100, sw1, sw2, sw3, conf };
 }
 
 const f=(v,d=2)=>typeof v==='number'?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
@@ -378,12 +371,8 @@ function render(idx,d,sess){
   const pr=predict(d);
   const ph=prevDay?.high||high,pl=prevDay?.low||low,pc2=prevDay?.close||prevClose;
   const pv=calcPiv(ph,pl,pc2);
-  const cc_=cc(change),bc_=bc(change);
-  const pc_=cc(pr.chg),pb_=bc(pr.chg);
-  const cf=cconf(pr.conf);
-  const now=new Date();
-  const ut=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const ud=now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+  const cc_=cc(change),bc_=bc(change),pc_=cc(pr.chg),pb_=bc(pr.chg),cf=cconf(pr.conf);
+  const now=new Date(), ut=now.toLocaleTimeString('th-TH'), ud=now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
 
   return`<div class="card" id="card-${idx.id}">
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px;flex-wrap:wrap">
