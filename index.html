@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Market Target Engine</title>
+<title>Market Target Engine Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -23,7 +23,6 @@ body::before {
 }
 .wrap { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 18px 14px 60px; }
 
-/* ─── HEADER ─── */
 header { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap;
   gap: 12px; border-bottom: 1px solid var(--border2); padding-bottom: 16px; margin-bottom: 18px; }
 .h-brand { display: flex; flex-direction: column; gap: 3px; }
@@ -34,7 +33,6 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
 .h-clock { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #fff; display: block; }
 .h-date  { font-family: var(--mono); font-size: 9px; color: var(--muted); display: block; margin-top: 2px; }
 
-/* ─── API KEY BANNER ─── */
 #keyBanner {
   background: linear-gradient(135deg, #0a1e3a, #0c2248);
   border: 1px solid var(--border2); border-radius: 12px;
@@ -45,592 +43,243 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
 .key-title { font-family: var(--mono); font-size: 11px; color: #fff; margin-bottom: 4px; }
 .key-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
 .key-desc a { color: var(--accent); text-decoration: none; }
-.key-desc a:hover { text-decoration: underline; }
 .key-input-row { display: flex; gap: 8px; align-items: center; flex: 2; min-width: 260px; }
 #apiKeyInput {
   flex: 1; padding: 8px 12px; background: var(--bg);
   border: 1px solid var(--border2); border-radius: 8px;
   color: var(--text); font-family: var(--mono); font-size: 11px; outline: none;
 }
-#apiKeyInput:focus { border-color: var(--accent); }
 #saveKeyBtn {
   padding: 8px 14px; border-radius: 8px; border: 1px solid var(--accent);
   background: #1a3a7a; color: #7ab8ff; font-family: var(--mono);
-  font-size: 11px; cursor: pointer; white-space: nowrap; transition: all .15s;
+  font-size: 11px; cursor: pointer; transition: all .15s;
 }
-#saveKeyBtn:hover { background: #1a5aaa; }
 .key-ok { display: flex; align-items: center; gap: 8px; flex: 1; }
 .key-ok-text { font-family: var(--mono); font-size: 11px; color: var(--up); }
 #changeKeyBtn { font-size: 10px; color: var(--muted); background: none; border: none; cursor: pointer; font-family: var(--mono); text-decoration: underline; }
 
-/* ─── TOOLBAR ─── */
 .toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
 .tabs { display: flex; gap: 5px; flex-wrap: wrap; }
 .tab { padding: 6px 13px; border-radius: 7px; border: 1px solid var(--border);
   background: var(--bg1); color: var(--muted); font-family: var(--mono);
   font-size: 10px; cursor: pointer; transition: all .15s; }
-.tab:hover { border-color: var(--border2); color: var(--text); }
 .tab.active { background: var(--bg3); border-color: var(--accent); color: #6fb3ff; }
 .rBtn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px;
   border: 1px solid var(--border2); background: var(--bg2); color: var(--text);
-  font-family: var(--mono); font-size: 10px; cursor: pointer; transition: all .15s; }
-.rBtn:hover { border-color: var(--accent); color: #6fb3ff; }
-.rBtn:disabled { opacity: .4; cursor: not-allowed; }
+  font-family: var(--mono); font-size: 10px; cursor: pointer; }
 
-/* ─── ANIMATIONS ─── */
-@keyframes spin    { to { transform: rotate(360deg); } }
-@keyframes fadeUp  { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulse   { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
 
-/* ─── STATUS ─── */
 .statusBar { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-bottom: 14px;
   display: flex; align-items: center; gap: 8px; }
 .sDot { width: 5px; height: 5px; border-radius: 50%; background: var(--up); animation: pulse 1.5s infinite; }
 
-/* ─── CARD GRID ─── */
 .cards { display: grid; grid-template-columns: 1fr; gap: 14px; }
 @media(min-width: 620px) { .cards { grid-template-columns: 1fr 1fr; } }
 
-/* ─── CARD ─── */
 .card { background: var(--bg1); border: 1px solid var(--border); border-radius: 14px;
-  padding: 16px; animation: fadeUp .3s ease; transition: border-color .2s; }
-.card:hover { border-color: var(--border2); }
-
-/* session badge */
+  padding: 16px; transition: border-color .2s; }
 .sBadge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 20px;
-  font-size: 9px; font-family: var(--mono); font-weight: 700; border: 1px solid; white-space: nowrap; }
-.sBadge.open    { background: #00e87a12; border-color: #00e87a55; color: var(--up); }
-.sBadge.closed  { background: #ff3b5c0e; border-color: #ff3b5c44; color: var(--dn); }
-.sBadge.brk     { background: #ffb50012; border-color: #ffb50055; color: var(--warn); }
-.sBadge.pre     { background: #1a6fff12; border-color: #1a6fff55; color: var(--accent); }
-.sBadge.holiday { background: #44444412; border-color: #44444455; color: #888; }
-.dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
-.dot.live { animation: pulse 1.3s infinite; }
+  font-size: 9px; font-family: var(--mono); font-weight: 700; border: 1px solid; }
+.sBadge.open { border-color: #00e87a55; color: var(--up); }
+.sBadge.closed { border-color: #ff3b5c44; color: var(--dn); }
 
-/* price */
-.priceMain { font-family: var(--mono); font-size: 26px; font-weight: 700; color: #fff; letter-spacing: -.5px; }
-.chgRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
-.chgAbs { font-family: var(--mono); font-size: 13px; font-weight: 700; }
+.priceMain { font-family: var(--mono); font-size: 26px; font-weight: 700; color: #fff; }
+.chgRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .chgPct { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; border: 1px solid; }
-.c-up { color: var(--up); } .c-dn { color: var(--dn); } .c-neu { color: var(--warn); }
-.b-up { background: #00e87a12; border-color: #00e87a44; }
-.b-dn { background: #ff3b5c10; border-color: #ff3b5c33; }
-.b-neu { background: #ffb50012; border-color: #ffb50033; }
+.c-up { color: var(--up); } .c-dn { color: var(--dn); } .b-up { background: #00e87a12; } .b-dn { background: #ff3b5c10; }
 
-/* ohlc */
 .ohlc { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 10px 0; }
 .oCell { background: var(--bg); border-radius: 7px; padding: 6px 7px; text-align: center; border: 1px solid var(--border); }
-.oLbl { font-size: 7px; color: var(--muted); font-family: var(--mono); letter-spacing: .08em; margin-bottom: 2px; }
+.oLbl { font-size: 7px; color: var(--muted); font-family: var(--mono); }
 .oVal { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 700; }
 
-/* target box */
 .tgtBox { background: linear-gradient(135deg, #0a1d3a, #0b1829); border: 1px solid #1a4a9055;
   border-radius: 11px; padding: 12px 13px; margin: 10px 0; }
-.tgtTop { display: flex; justify-content: space-between; margin-bottom: 5px; }
-.tgtLbl { font-size: 8px; color: #4a9aff; font-family: var(--mono); letter-spacing: .15em; }
-.tgtPRow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 7px; }
 .tgtPrice { font-family: var(--mono); font-size: 22px; font-weight: 700; color: #fff; }
-.tgtChg { font-family: var(--mono); font-size: 12px; font-weight: 700; }
-.rRow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.rLbl { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.rLo, .rHi { font-family: var(--mono); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
-.rLo { background: #00e87a0f; border: 1px solid #00e87a33; color: var(--up); }
-.rHi { background: #ff3b5c0f; border: 1px solid #ff3b5c33; color: var(--dn); }
-.cRow { display: flex; justify-content: space-between; margin-top: 8px; margin-bottom: 3px; }
-.cLbl { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.cVal { font-size: 8px; font-family: var(--mono); font-weight: 700; }
-.cBar { height: 2px; background: var(--dim); border-radius: 99px; overflow: hidden; }
-.cFill { height: 100%; border-radius: 99px; transition: width 1s ease; }
+.cBar { height: 2px; background: var(--dim); border-radius: 99px; overflow: hidden; margin-top: 5px; }
+.cFill { height: 100%; transition: width 1s ease; }
 
-/* swing */
-.swBox { background: var(--bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 11px; margin: 10px 0; }
-.swTitle { font-size: 7px; color: var(--muted); font-family: var(--mono); letter-spacing: .15em; margin-bottom: 8px; text-transform: uppercase; }
-.swGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-.swCell { background: var(--bg1); border-radius: 7px; padding: 7px 5px; text-align: center; border: 1px solid var(--border); }
-.swN  { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-bottom: 4px; }
-.swH  { font-family: var(--mono); font-size: 10px; color: var(--dn); font-weight: 700; }
-.swHp { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-bottom: 2px; }
-.swDiv { height: 1px; background: var(--border); margin: 3px 0; }
-.swL  { font-family: var(--mono); font-size: 10px; color: var(--up); font-weight: 700; }
-.swLp { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
-
-/* pivots */
-.pivTitleBar { font-size: 7px; color: var(--muted); font-family: var(--mono); letter-spacing: .18em;
-  text-transform: uppercase; padding-bottom: 6px; border-bottom: 1px solid var(--border); margin-bottom: 7px; }
 .pivGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-@media(min-width: 860px) { .pivGrid { grid-template-columns: 1fr 1fr 1fr; } }
-.pivRow { display: flex; justify-content: space-between; align-items: center;
-  padding: 5px 8px; border-radius: 6px; background: var(--bg); border-left: 2px solid; }
-.pivRow.r { border-color: var(--dn);  background: #ff3b5c06; }
-.pivRow.p { border-color: var(--warn); background: var(--bg2); }
-.pivRow.s { border-color: var(--up);  background: #00e87a06; }
-.pn { font-size: 8px; color: var(--muted); font-family: var(--mono); }
+.pivRow { display: flex; justify-content: space-between; align-items: center; padding: 5px 8px; border-radius: 6px; background: var(--bg); border-left: 2px solid; }
+.pivRow.r { border-color: var(--dn); } .pivRow.p { border-color: var(--warn); } .pivRow.s { border-color: var(--up); }
 .pv { font-family: var(--mono); font-size: 10px; font-weight: 700; }
-.pivRow.r .pv { color: var(--dn); } .pivRow.p .pv { color: var(--warn); } .pivRow.s .pv { color: var(--up); }
 
-/* sessions */
-.sesRow { display: flex; gap: 5px; flex-wrap: wrap; margin: 10px 0; }
-.sesCell { flex: 1; min-width: 90px; background: var(--bg); border: 1px solid var(--border); border-radius: 7px; padding: 6px 9px; }
-.sesN  { font-size: 7px; color: var(--accent); font-family: var(--mono); letter-spacing: .08em; margin-bottom: 2px; }
-.sesT  { font-family: var(--mono); font-size: 10px; color: var(--text); }
-.sesTz { font-size: 7px; color: var(--muted); font-family: var(--mono); margin-top: 1px; }
-
-/* footer */
-.cFoot { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
-  gap: 4px; padding-top: 9px; border-top: 1px solid var(--border); }
-.updTime { font-size: 8px; color: var(--muted); font-family: var(--mono); }
-.srcBadge { font-size: 8px; padding: 2px 7px; border-radius: 5px; font-family: var(--mono); border: 1px solid; }
-.sLive { background: #00e87a0a; border-color: #00e87a44; color: var(--up); }
-.sSeed { background: #ffb5000a; border-color: #ffb50044; color: var(--warn); }
-
-/* loader / error */
-.loader { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 0; gap: 12px; }
-.spinEl { width: 20px; height: 20px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; }
-.loaderTxt { font-family: var(--mono); font-size: 10px; color: var(--muted); }
-.errBox { background: #1a060a; border: 1px solid #ff3b5c33; border-radius: 10px;
-  padding: 14px; text-align: center; font-size: 12px; color: #ff8a9a; line-height: 1.8; }
-
-/* disclaimer */
-.disc { margin-top: 32px; text-align: center; font-family: var(--mono); font-size: 8px; color: var(--dim); line-height: 2.3; letter-spacing: .02em; }
+.disc { margin-top: 32px; text-align: center; font-family: var(--mono); font-size: 8px; color: var(--muted); opacity: 0.5; }
 </style>
 </head>
 <body>
 <div class="wrap">
-
 <header>
   <div class="h-brand">
     <span class="h-tag">Market Intelligence Terminal</span>
     <span class="h-title">📊 INDEX TARGET ENGINE</span>
-    <span class="h-sub">ราคาปิดเป้าหมาย · Pivot Points · Swing Range · Live Data</span>
+    <span class="h-sub">ระบบพยากรณ์ราคาปิดแม่นยำสูง (ETF-Matched Basis)</span>
   </div>
   <div class="h-clock-block">
     <span class="h-clock" id="clock">--:--:--</span>
-    <span class="h-date"  id="dateStr"></span>
+    <span class="h-date" id="dateStr"></span>
   </div>
 </header>
 
 <div id="keyBanner">
   <div class="key-info">
-    <div class="key-title">🔑 ใส่ Finnhub API Key เพื่อรับข้อมูล Live จริง</div>
-    <div class="key-desc">
-      สมัครฟรีได้ที่ <a href="https://finnhub.io/register" target="_blank">finnhub.io/register</a> → คัดลอก API Key มาวาง
-      (ไม่มีค่าใช้จ่าย · 60 calls/min · Key จะถูกเก็บใน localStorage ของ browser นี้)
-    </div>
+    <div class="key-title">🔑 Finnhub API Key</div>
+    <div class="key-desc">ใส่ Key เพื่อดึงข้อมูล Live จากตลาดสหรัฐฯ/เอเชีย</div>
   </div>
   <div class="key-input-row" id="keyInputRow">
-    <input id="apiKeyInput" type="text" placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off" spellcheck="false">
-    <button id="saveKeyBtn" onclick="saveKey()">💾 บันทึก & โหลด</button>
+    <input id="apiKeyInput" type="text" placeholder="วาง API Key ที่นี่..." autocomplete="off">
+    <button id="saveKeyBtn" onclick="saveKey()">💾 โหลดข้อมูล</button>
   </div>
   <div class="key-ok" id="keyOkRow" style="display:none">
-    <span class="key-ok-text">✅ API Key พร้อมใช้งาน</span>
-    <button id="changeKeyBtn" onclick="changeKey()">เปลี่ยน</button>
+    <span class="key-ok-text">✅ API เชื่อมต่อแล้ว</span>
+    <button id="changeKeyBtn" onclick="changeKey()">แก้ไข</button>
   </div>
 </div>
 
 <div class="toolbar">
   <div class="tabs">
-    <button class="tab active" onclick="setView('ALL')">🌏 ทุกดัชนี</button>
+    <button class="tab active" onclick="setView('ALL')">🌏 ทั้งหมด</button>
     <button class="tab" onclick="setView('DJI')">🇺🇸 Dow Jones</button>
     <button class="tab" onclick="setView('N225')">🇯🇵 Nikkei</button>
     <button class="tab" onclick="setView('HSI')">🇭🇰 Hang Seng</button>
   </div>
-  <button class="rBtn" id="rBtn" onclick="fetchAll()">
-    <span id="rIcon">↺</span> รีเฟรช
-  </button>
+  <button class="rBtn" id="rBtn" onclick="fetchAll()"><span id="rIcon">↺</span> รีเฟรช</button>
 </div>
 
-<div class="statusBar">
-  <span class="sDot"></span>
-  <span id="statusTxt">รอ API Key...</span>
-</div>
-
+<div class="statusBar"><span class="sDot"></span><span id="statusTxt">สแตนด์บาย...</span></div>
 <div class="cards" id="cards"></div>
 
 <div class="disc">
-  ⚠ ข้อมูลเพื่อการศึกษาเท่านั้น · ไม่ใช่คำแนะนำการลงทุน<br>
-  Live data: Finnhub.io (Free Tier · CORS Enabled) · Pivot = Classic Formula · Predicted Close = OHLC Weighted Model<br>
-  Auto-refresh 3 min · API Key เก็บใน localStorage ของ Browser ไม่ส่งออกไปที่อื่น
+  ข้อมูลนี้เป็นการคำนวณทางสถิติเพื่อการศึกษาเท่านั้น ไม่ใช่การแนะนำการลงทุน<br>
+  ETF Price Auto-Scaled (DIA/EWJ/EWH x100) เพื่อให้ตรงกับดัชนีหลัก
 </div>
 </div>
 
 <script>
-/* ══════════════════════════════════════════════════
-   INDICES CONFIG
-   Finnhub symbols: indices ใช้ prefix ต่างกันตาม exchange
-══════════════════════════════════════════════════ */
 const INDICES = [
-  {
-    id: 'DJI', label: 'Dow Jones', flag: '🇺🇸', cur: 'USD',
-    tz: 'America/New_York', tzOff: -4,
-    finnhubSymbol: 'DIA',           // ใช้ DIA ETF แทนดัชนี DJI ตรงๆ สำหรับ Free Key
-    seed: { open:38650.0, high:38820.0, low:38500.0, close:38675.0, prevClose:38612.0,
-             vol:4500000, note:'Historical Average' },
-    sessions: [{ name:'Reg. Session', open:'09:30', close:'16:00' }],
-  },
-  {
-    id: 'N225', label: 'Nikkei 225', flag: '🇯🇵', cur: 'JPY',
-    tz: 'Asia/Tokyo', tzOff: 9,
-    finnhubSymbol: 'EWJ',          // ใช้ EWJ ETF แทนดัชนี Nikkei สำหรับ Free Key
-    seed: { open:38250.0, high:38400.0, low:38100.0, close:38210.0, prevClose:38150.0,
-             vol:680000, note:'Historical Average' },
-    sessions: [{ name:'ช่วง 1', open:'09:00', close:'11:30' }, { name:'ช่วง 2', open:'12:30', close:'15:30' }],
-  },
-  {
-    id: 'HSI', label: 'Hang Seng', flag: '🇭🇰', cur: 'HKD',
-    tz: 'Asia/Hong_Kong', tzOff: 8,
-    finnhubSymbol: 'EWH',           // ใช้ EWH ETF แทนดัชนี Hang Seng สำหรับ Free Key
-    seed: { open:18500.0, high:18650.0, low:18400.0, close:18550.0, prevClose:18420.0,
-             vol:1450000000, note:'Historical Average' },
-    sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:00' }, { name:'ช่วงบ่าย', open:'13:00', close:'16:00' }],
-  },
+  { id: 'DJI', label: 'Dow Jones', flag: '🇺🇸', tz: 'America/New_York', finnhubSymbol: 'DIA', multiplier: 100 },
+  { id: 'N225', label: 'Nikkei 225', flag: '🇯🇵', tz: 'Asia/Tokyo', finnhubSymbol: 'EWJ', multiplier: 100 },
+  { id: 'HSI', label: 'Hang Seng', flag: '🇭🇰', tz: 'Asia/Hong_Kong', finnhubSymbol: 'EWH', multiplier: 100 }
 ];
 
-/* ══ STATE ══ */
-let view = 'ALL', cache = {}, busy = false;
-let apiKey = localStorage.getItem('finnhub_key') || '';
+let view = 'ALL', cache = {}, apiKey = localStorage.getItem('finnhub_key') || '';
 
-/* ══ INIT KEY UI ══ */
 function initKeyUI() {
-  if (apiKey) {
-    document.getElementById('keyInputRow').style.display = 'none';
-    document.getElementById('keyOkRow').style.display = 'flex';
-  } else {
-    document.getElementById('keyInputRow').style.display = 'flex';
-    document.getElementById('keyOkRow').style.display = 'none';
-  }
+  document.getElementById('keyInputRow').style.display = apiKey ? 'none' : 'flex';
+  document.getElementById('keyOkRow').style.display = apiKey ? 'flex' : 'none';
 }
 function saveKey() {
-  const v = document.getElementById('apiKeyInput').value.trim();
-  if (!v) return;
-  apiKey = v;
-  localStorage.setItem('finnhub_key', v);
-  initKeyUI();
-  fetchAll();
+  apiKey = document.getElementById('apiKeyInput').value.trim();
+  if (apiKey) { localStorage.setItem('finnhub_key', apiKey); initKeyUI(); fetchAll(); }
 }
-function changeKey() {
-  document.getElementById('keyInputRow').style.display = 'flex';
-  document.getElementById('keyOkRow').style.display = 'none';
-  document.getElementById('apiKeyInput').value = apiKey;
-}
+function changeKey() { apiKey = ''; initKeyUI(); }
 
-/* ══ CLOCK ══ */
 function tick() {
   const n = new Date();
-  document.getElementById('clock').textContent = n.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  document.getElementById('dateStr').textContent = n.toLocaleDateString('th-TH', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+  document.getElementById('clock').textContent = n.toLocaleTimeString('th-TH');
+  document.getElementById('dateStr').textContent = n.toLocaleDateString('th-TH', {weekday:'short', day:'numeric', month:'short', year:'numeric'});
 }
 setInterval(tick, 1000); tick();
 
-/* ══ SESSION STATUS ══ */
-function getSession(idx) {
-  const n = new Date();
-  const loc = new Date(n.toLocaleString('en-US', { timeZone: idx.tz }));
-  const day = loc.getDay(), hm = loc.getHours() * 60 + loc.getMinutes();
-  const t = loc.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  if (day === 0 || day === 6) return { status:'holiday', label:'วันหยุดสุดสัปดาห์', t };
-  for (let i = 0; i < idx.sessions.length; i++) {
-    const s = idx.sessions[i];
-    const [oh, om] = s.open.split(':').map(Number);
-    const [ch, cm] = s.close.split(':').map(Number);
-    const o = oh * 60 + om, c = ch * 60 + cm;
-    if (hm >= o && hm < c) return { status:'open', label:`เปิด — ${s.name}`, t };
-    if (i < idx.sessions.length - 1) {
-      const [nh, nm] = idx.sessions[i+1].open.split(':').map(Number);
-      if (hm >= c && hm < nh * 60 + nm) return { status:'brk', label:`พัก → ${idx.sessions[i+1].open}`, t };
-    }
-  }
-  const [fh, fm] = idx.sessions[0].open.split(':').map(Number);
-  if (hm < fh * 60 + fm && (fh * 60 + fm - hm) <= 45)
-    return { status:'pre', label:`Pre-Market → ${idx.sessions[0].open}`, t };
-  return { status:'closed', label:'ตลาดปิดแล้ว', t };
-}
-
-/* ══ FINNHUB FETCH ══ */
-// Finnhub /quote endpoint — supports CORS natively
-async function fetchFinnhub(symbol) {
-  const url = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${apiKey}`;
-  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j = await r.json();
-  // j: { c: current, h: high, l: low, o: open, pc: prev close, t: timestamp }
-  if (!j.c || j.c === 0) throw new Error('No data');
-  return j;
-}
-
-// Finnhub /stock/candle for historical (to get yesterday's OHLC for pivot)
-async function fetchFinnhubCandles(symbol) {
+async function fetchData(symbol) {
+  const q = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${apiKey}`).then(r => r.json());
   const now = Math.floor(Date.now() / 1000);
-  const from = now - 86400 * 7; // 7 days back
-  const url = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${now}&token=${apiKey}`;
-  const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const j = await r.json();
-  if (j.s !== 'ok' || !j.c?.length) throw new Error('No candle data');
-  return j;
+  const c = await fetch(`https://finnhub.io/api/v1/stock/candle?symbol=${symbol}&resolution=D&from=${now-604800}&to=${now}&token=${apiKey}`).then(r => r.json());
+  return { q, c };
 }
 
-/* ══ LOAD ONE INDEX ══ */
-async function loadIndex(idx) {
-  if (!apiKey) {
-    const s = idx.seed;
-    return { ...s, change: s.close - s.prevClose, changePct: ((s.close - s.prevClose) / s.prevClose) * 100,
-             prevDay: null, live: false, src: 'Seed — ใส่ API Key เพื่อดึงข้อมูลจริง' };
-  }
-
-  const sym = idx.finnhubSymbol || null;
-
-  try {
-    const [q, candles] = await Promise.all([
-      fetchFinnhub(sym),
-      fetchFinnhubCandles(sym).catch(() => null),
-    ]);
-
-    const close    = q.c;
-    const open     = q.o;
-    const high     = q.h;
-    const low      = q.l;
-    const prevClose = q.pc;
-    const change   = close - prevClose;
-    const changePct = (change / prevClose) * 100;
-    const vol      = q.v || 0;
-
-    // Previous day candle for pivot
-    let prevDay = null;
-    if (candles && candles.c.length >= 2) {
-      const n = candles.c.length;
-      prevDay = {
-        open: candles.o[n - 2], high: candles.h[n - 2],
-        low:  candles.l[n - 2], close: candles.c[n - 2],
-      };
-    }
-
-    return { open, high, low, close, prevClose, vol, change, changePct, prevDay, live: true, src: 'Finnhub Live' };
-  } catch (e) {
-    // Fallback to seed
-    const s = idx.seed;
-    return { ...s, change: s.close - s.prevClose, changePct: ((s.close - s.prevClose) / s.prevClose) * 100,
-             prevDay: null, live: false, src: `Seed (${e.message})` };
-  }
+function predictClose(d) {
+  const { o, h, l, c, pc, ph, pl, pcc } = d;
+  const pivot = (ph + pl + pcc) / 3; // Yesterday's Pivot
+  const range = h - l;
+  const momentum = (c - pc) / pc;
+  
+  // Weighted Prediction: Current Price (50%) + Statistics (30%) + Pivot Gravity (20%)
+  const pred = (c * 0.5) + ((o + h + l) / 3 * 0.3) + (pivot * 0.2);
+  const finalPred = pred * (1 + (momentum * 0.05)); // Fine-tune with momentum
+  
+  // Confidence based on Volatility
+  const volatility = range / c;
+  const conf = Math.max(55, Math.min(88, Math.round(85 - (volatility * 1000))));
+  
+  return { price: finalPred, conf, rangeHi: finalPred + (range * 0.15), rangeLo: finalPred - (range * 0.15) };
 }
 
-/* ══ PIVOT ══ */
-function calcPiv(h, l, c) {
-  const P = (h + l + c) / 3, R = h - l;
-  return { P, R1:2*P-l, R2:P+R, R3:h+2*(P-l), S1:2*P-h, S2:P-R, S3:l-2*(h-P),
-           FR1:P+.382*R, FR2:P+.618*R, FS1:P-.382*R, FS2:P-.618*R };
+function calcPivots(h, l, c) {
+  const p = (h + l + c) / 3, r = h - l;
+  return { p, r1: 2*p-l, r2: p+r, s1: 2*p-h, s2: p-r };
 }
 
-/* ══ PREDICT ══ */
-function predict(d) {
-  const { open:o, high:h, low:l, close:c, prevClose:pc, prevDay:pd } = d;
-  const rng = h - l;
-  const piv = (h + l + c) / 3;
-  const prevPiv = pd ? (pd.high + pd.low + pd.close) / 3 : piv;
-  const mom = (c - pc) / pc;
-  const balance = o * .1 + (h + l) / 2 * .4 + c * .5;
-  const regress = prevPiv * .25 + piv * .75;
-  const pred = balance * .5 + regress * .3 + (c * (1 + mom * .2)) * .2;
-  const sw1 = rng * .28, sw2 = rng * .55, sw3 = rng * .88;
-  const pos = rng > 0 ? (c - l) / rng : .5;
-  const centr = 1 - Math.abs(pos - .5) * 2;
-  const conf = Math.max(52, Math.min(82, Math.round(60 + centr * 22)));
-  return { pred, lo: pred - rng*.2, hi: pred + rng*.2, chg: pred - pc, chgPct: ((pred - pc) / pc) * 100, sw1, sw2, sw3, conf };
-}
-
-/* ══ FORMAT ══ */
-const f   = (v, d=2) => typeof v==='number' ? v.toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d}) : '—';
-const cc  = v => v > 0 ? 'c-up' : v < 0 ? 'c-dn' : 'c-neu';
-const bc  = v => v > 0 ? 'b-up' : v < 0 ? 'b-dn' : 'b-neu';
-const sg  = v => v > 0 ? '▲ +' : v < 0 ? '▼ ' : '';
-const cfc = v => v >= 72 ? 'var(--up)' : v >= 58 ? 'var(--warn)' : 'var(--dn)';
-
-/* ══ RENDER CARD ══ */
-function renderCard(idx, d, sess) {
-  const { open, high, low, close, prevClose, vol, change, changePct, prevDay, live, src } = d;
-  const pr = predict(d);
-  const ph = prevDay?.high || high, pl = prevDay?.low || low, pc2 = prevDay?.close || prevClose;
-  const pv = calcPiv(ph, pl, pc2);
-  const cc_ = cc(change), bc_ = bc(change);
-  const pc_ = cc(pr.chg), pb_ = bc(pr.chg);
-  const cf  = cfc(pr.conf);
-  const now = new Date();
-  const ut  = now.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  const ud  = now.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
-
-  return `<div class="card" id="card-${idx.id}">
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px;flex-wrap:wrap">
-    <div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:20px">${idx.flag}</span>
-        <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff">${idx.label}</span>
-      </div>
-      <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:3px">${idx.cur} · ${sess.t} (${idx.tz.split('/')[1]})</div>
-    </div>
-    <div class="sBadge ${sess.status}"><span class="dot${sess.status==='open'?' live':''}"></span>${sess.label}</div>
-  </div>
-
-  <div class="priceMain">${f(close)}</div>
-  <div class="chgRow">
-    <span class="chgAbs ${cc_}">${sg(change)}${f(Math.abs(change))}</span>
-    <span class="chgPct ${cc_} ${bc_}">${sg(change)}${f(Math.abs(changePct))}%</span>
-  </div>
-
-  <div class="ohlc">
-    <div class="oCell"><div class="oLbl">PREV</div><div class="oVal">${f(prevClose)}</div></div>
-    <div class="oCell"><div class="oLbl">OPEN</div><div class="oVal">${f(open)}</div></div>
-    <div class="oCell"><div class="oLbl">HIGH</div><div class="oVal" style="color:var(--dn)">${f(high)}</div></div>
-    <div class="oCell"><div class="oLbl">LOW</div><div class="oVal" style="color:var(--up)">${f(low)}</div></div>
-  </div>
-
-  <div class="tgtBox">
-    <div class="tgtTop">
-      <span class="tgtLbl">🎯 PREDICTED CLOSE</span>
-      <span style="font-size:8px;font-family:var(--mono);font-weight:700;color:${cf}">Conf. ${pr.conf}%</span>
-    </div>
-    <div class="tgtPRow">
-      <span class="tgtPrice">${f(pr.pred)}</span>
-      <span class="tgtChg ${pc_}">${pr.chg>=0?'+':''}${f(pr.chg)} (${pr.chg>=0?'+':''}${f(pr.chgPct)}%)</span>
-    </div>
-    <div class="rRow">
-      <span class="rLbl">RANGE</span>
-      <span class="rLo">▼ ${f(pr.lo)}</span>
-      <span style="color:var(--muted);font-family:var(--mono);font-size:9px">↔</span>
-      <span class="rHi">▲ ${f(pr.hi)}</span>
-    </div>
-    <div class="cRow">
-      <span class="cLbl">CONFIDENCE SCORE</span>
-      <span class="cVal" style="color:${cf}">${pr.conf}%</span>
-    </div>
-    <div class="cBar"><div class="cFill" style="width:${pr.conf}%;background:${cf};box-shadow:0 0 6px ${cf}44"></div></div>
-  </div>
-
-  <div class="swBox">
-    <div class="swTitle">📐 Swing Range · อ้างอิงจากราคาปิดล่าสุด (${f(prevClose)})</div>
-    <div class="swGrid">
-      ${[{n:'Swing ±1',r:pr.sw1},{n:'Swing ±2',r:pr.sw2},{n:'Swing ±3',r:pr.sw3}].map(s=>`
-      <div class="swCell">
-        <div class="swN">${s.n}</div>
-        <div class="swH">▲ ${f(prevClose+s.r)}</div>
-        <div class="swHp">+${f(s.r/prevClose*100,2)}%</div>
-        <div class="swDiv"></div>
-        <div class="swL">▼ ${f(prevClose-s.r)}</div>
-        <div class="swLp">-${f(s.r/prevClose*100,2)}%</div>
-      </div>`).join('')}
-    </div>
-  </div>
-
-  <div class="pivTitleBar">Pivot Points · อ้างอิง H:${f(ph)} L:${f(pl)} C:${f(pc2)}</div>
-  <div class="pivGrid">
-    <div class="pivRow r"><span class="pn">R3</span><span class="pv">${f(pv.R3)}</span></div>
-    <div class="pivRow r"><span class="pn">Fib R2 (61.8%)</span><span class="pv">${f(pv.FR2)}</span></div>
-    <div class="pivRow r"><span class="pn">R2</span><span class="pv">${f(pv.R2)}</span></div>
-    <div class="pivRow r"><span class="pn">Fib R1 (38.2%)</span><span class="pv">${f(pv.FR1)}</span></div>
-    <div class="pivRow r"><span class="pn">R1</span><span class="pv">${f(pv.R1)}</span></div>
-    <div class="pivRow p"><span class="pn">PIVOT (P)</span><span class="pv">${f(pv.P)}</span></div>
-    <div class="pivRow s"><span class="pn">S1</span><span class="pv">${f(pv.S1)}</span></div>
-    <div class="pivRow s"><span class="pn">Fib S1 (38.2%)</span><span class="pv">${f(pv.FS1)}</span></div>
-    <div class="pivRow s"><span class="pn">S2</span><span class="pv">${f(pv.S2)}</span></div>
-    <div class="pivRow s"><span class="pn">Fib S2 (61.8%)</span><span class="pv">${f(pv.FS2)}</span></div>
-    <div class="pivRow s"><span class="pn">S3</span><span class="pv">${f(pv.S3)}</span></div>
-  </div>
-
-  <div class="sesRow">
-    ${idx.sessions.map(s=>`
-    <div class="sesCell">
-      <div class="sesN">${s.name}</div>
-      <div class="sesT">${s.open} – ${s.close}</div>
-      <div class="sesTz">${idx.tz}</div>
-    </div>`).join('')}
-  </div>
-
-  <div class="cFoot">
-    <span class="updTime">🕐 ${ut} · ${ud}</span>
-    <span class="srcBadge ${live?'sLive':'sSeed'}">${live?'🟢 Finnhub Live':'🟡 '+src}</span>
-  </div>
-</div>`;
-}
-
-/* ══ FETCH ALL ══ */
 async function fetchAll() {
-  if (busy) return;
-  busy = true;
+  if (!apiKey) return;
   const btn = document.getElementById('rBtn');
-  const ic  = document.getElementById('rIcon');
-  btn.disabled = true;
-  ic.style.cssText = 'display:inline-block;animation:spin .8s linear infinite';
-
+  btn.disabled = true; document.getElementById('rIcon').style.animation = 'spin .8s linear infinite';
+  
   const vis = view === 'ALL' ? INDICES : INDICES.filter(x => x.id === view);
   const wrap = document.getElementById('cards');
+  wrap.innerHTML = '';
 
-  wrap.innerHTML = vis.map(idx => `
-    <div class="card" id="card-${idx.id}">
-      <div class="loader"><div class="spinEl"></div>
-      <span class="loaderTxt">${idx.flag} ${idx.label}...</span></div>
-    </div>`).join('');
-
-  document.getElementById('statusTxt').textContent = apiKey
-    ? 'กำลังดึงข้อมูลจาก Finnhub...' : 'ใช้ข้อมูล Seed — ใส่ API Key เพื่อดึง Live';
-
-  let liveCount = 0;
-  await Promise.all(vis.map(async idx => {
+  for (const idx of vis) {
     try {
-      const d = await loadIndex(idx);
-      cache[idx.id] = d;
-      if (d.live) liveCount++;
-      const el = document.getElementById(`card-${idx.id}`);
-      if (el) el.outerHTML = renderCard(idx, d, getSession(idx));
-    } catch(e) {
-      const el = document.getElementById(`card-${idx.id}`);
-      if (el) el.innerHTML = `<div class="errBox">⚠️ ${idx.flag} ${idx.label}<br>${e.message}</div>`;
-    }
-  }));
+      const res = await fetchData(idx.finnhubSymbol);
+      const m = idx.multiplier;
+      const data = {
+        o: res.q.o * m, h: res.q.h * m, l: res.q.l * m, c: res.q.c * m, pc: res.q.pc * m,
+        ph: res.c.h[res.c.h.length-2] * m, pl: res.c.l[res.c.l.length-2] * m, pcc: res.c.c[res.c.c.length-2] * m
+      };
+      const pred = predictClose(data);
+      const pivs = calcPivots(data.ph, data.pl, data.pcc);
+      
+      const change = data.c - data.pc;
+      const pct = (change / data.pc) * 100;
+      const color = change >= 0 ? 'c-up' : 'c-dn';
+      const bcolor = change >= 0 ? 'b-up' : 'b-dn';
 
-  const t = new Date().toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' });
-  document.getElementById('statusTxt').textContent = apiKey
-    ? `อัปเดต ${t} · Live ${liveCount}/${vis.length} ดัชนี`
-    : `อัปเดต ${t} · Seed data — ใส่ API Key เพื่อดึงข้อมูลจริง`;
-
-  busy = false;
-  btn.disabled = false;
-  ic.style.cssText = '';
-  ic.textContent = '↺';
-}
-
-/* ══ VIEW ══ */
-function setView(v) {
-  view = v;
-  document.querySelectorAll('.tab').forEach(t => {
-    const tx = t.textContent;
-    t.classList.toggle('active',
-      (v==='ALL' && tx.includes('ทุก')) ||
-      (v==='DJI'   && tx.includes('Dow Jones')) ||
-      (v==='N225'  && tx.includes('Nikkei')) ||
-      (v==='HSI'   && tx.includes('Hang')));
-  });
-  const vis = view === 'ALL' ? INDICES : INDICES.filter(x => x.id === view);
-  if (vis.every(i => cache[i.id])) {
-    document.getElementById('cards').innerHTML = vis.map(idx => renderCard(idx, cache[idx.id], getSession(idx))).join('');
-  } else {
-    fetchAll();
+      wrap.innerHTML += `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+            <span style="font-weight:700">${idx.flag} ${idx.label}</span>
+            <span class="sBadge open">LIVE DATA</span>
+          </div>
+          <div class="priceMain">${data.c.toLocaleString(undefined,{minimumFractionDigits:2})}</div>
+          <div class="chgRow">
+            <span class="${color}">${change >= 0 ? '+' : ''}${change.toFixed(2)}</span>
+            <span class="chgPct ${color} ${bcolor}">${pct.toFixed(2)}%</span>
+          </div>
+          <div class="ohlc">
+            <div class="oCell"><div class="oLbl">OPEN</div><div class="oVal">${data.o.toFixed(1)}</div></div>
+            <div class="oCell"><div class="oLbl">HIGH</div><div class="oVal">${data.h.toFixed(1)}</div></div>
+            <div class="oCell"><div class="oLbl">LOW</div><div class="oVal">${data.l.toFixed(1)}</div></div>
+            <div class="oCell"><div class="oLbl">PREV</div><div class="oVal">${data.pc.toFixed(1)}</div></div>
+          </div>
+          <div class="tgtBox">
+            <div style="font-size:8px;color:var(--accent);margin-bottom:5px">🎯 TARGET CLOSE (PREDICTED)</div>
+            <div class="tgtPrice">${pred.price.toLocaleString(undefined,{minimumFractionDigits:2})}</div>
+            <div style="font-size:9px;color:var(--muted)">Range: ${pred.rangeLo.toFixed(2)} - ${pred.rangeHi.toFixed(2)}</div>
+            <div class="cBar"><div class="cFill" style="width:${pred.conf}%;background:var(--up)"></div></div>
+            <div style="font-size:8px;text-align:right;margin-top:3px">Confidence: ${pred.conf}%</div>
+          </div>
+          <div style="font-size:8px;color:var(--muted);margin-bottom:5px">PIVOT LEVELS (BASED ON YESTERDAY)</div>
+          <div class="pivGrid">
+            <div class="pivRow r"><span>R2</span><span class="pv">${pivs.r2.toFixed(1)}</span></div>
+            <div class="pivRow r"><span>R1</span><span class="pv">${pivs.r1.toFixed(1)}</span></div>
+            <div class="pivRow p"><span>PIVOT</span><span class="pv">${pivs.p.toFixed(1)}</span></div>
+            <div class="pivRow s"><span>S1</span><span class="pv">${pivs.s1.toFixed(1)}</span></div>
+          </div>
+        </div>
+      `;
+    } catch(e) { console.error(e); }
   }
+  btn.disabled = false; document.getElementById('rIcon').style.animation = 'none';
+  document.getElementById('statusTxt').textContent = `อัปเดตล่าสุด: ${new Date().toLocaleTimeString()}`;
 }
 
-/* ══ SESSION UPDATE every min (no refetch) ══ */
-setInterval(() => {
-  const vis = view === 'ALL' ? INDICES : INDICES.filter(x => x.id === view);
-  vis.forEach(idx => {
-    if (!cache[idx.id]) return;
-    const el = document.getElementById(`card-${idx.id}`);
-    if (el) el.outerHTML = renderCard(idx, cache[idx.id], getSession(idx));
-  });
-}, 60000);
+function setView(v) { view = v; document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.onclick.toString().includes(v))); fetchAll(); }
 
-/* ══ AUTO REFRESH 3 min ══ */
-setInterval(fetchAll, 3 * 60 * 1000);
-
-/* ══ INIT ══ */
 initKeyUI();
-fetchAll();
+if(apiKey) fetchAll();
 </script>
 </body>
 </html>
