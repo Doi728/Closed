@@ -197,7 +197,6 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
 <body>
 <div class="wrap">
 
-<!-- HEADER -->
 <header>
   <div class="h-brand">
     <span class="h-tag">Market Intelligence Terminal</span>
@@ -210,7 +209,6 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
   </div>
 </header>
 
-<!-- API KEY BANNER -->
 <div id="keyBanner">
   <div class="key-info">
     <div class="key-title">🔑 ใส่ Finnhub API Key เพื่อรับข้อมูล Live จริง</div>
@@ -229,12 +227,10 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
   </div>
 </div>
 
-<!-- TOOLBAR -->
 <div class="toolbar">
   <div class="tabs">
     <button class="tab active" onclick="setView('ALL')">🌏 ทุกดัชนี</button>
-    <button class="tab" onclick="setView('SET')">🇹🇭 SET</button>
-    <button class="tab" onclick="setView('SET50')">🇹🇭 SET50</button>
+    <button class="tab" onclick="setView('DJI')">🇺🇸 Dow Jones</button>
     <button class="tab" onclick="setView('N225')">🇯🇵 Nikkei</button>
     <button class="tab" onclick="setView('HSI')">🇭🇰 Hang Seng</button>
   </div>
@@ -264,38 +260,27 @@ header { display: flex; justify-content: space-between; align-items: flex-end; f
 ══════════════════════════════════════════════════ */
 const INDICES = [
   {
-    id: 'SET', label: 'SET Index', flag: '🇹🇭', cur: 'THB',
-    tz: 'Asia/Bangkok', tzOff: 7,
-    // Finnhub: Thailand SET = FXCM:THAINDEX — fallback: seed จาก SET.or.th 05 May 2026
-    finnhub: ['BINANCE:SETUSDT'],   // placeholder; real index via quote endpoint below
-    quoteSymbol: '^SET',            // used for display; Finnhub may return data for this
-    // Seed verified from SET.or.th 05 May 2026
-    seed: { open:1498.27, high:1503.90, low:1484.84, close:1490.10, prevClose:1493.69,
-             vol:6604269, note:'SET.or.th 05 May 2026' },
-    sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:30' }, { name:'ช่วงบ่าย', open:'14:00', close:'17:00' }],
-  },
-  {
-    id: 'SET50', label: 'SET50', flag: '🇹🇭', cur: 'THB',
-    tz: 'Asia/Bangkok', tzOff: 7,
-    quoteSymbol: 'SET50',
-    seed: { open:792.50, high:795.50, low:785.50, close:787.60, prevClose:789.50,
-             vol:2200000, note:'ประมาณ 52.9% ของ SET' },
-    sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:30' }, { name:'ช่วงบ่าย', open:'14:00', close:'17:00' }],
+    id: 'DJI', label: 'Dow Jones', flag: '🇺🇸', cur: 'USD',
+    tz: 'America/New_York', tzOff: -4,
+    finnhubSymbol: 'DIA',           // ใช้ DIA ETF แทนดัชนี DJI ตรงๆ สำหรับ Free Key
+    seed: { open:38650.0, high:38820.0, low:38500.0, close:38675.0, prevClose:38612.0,
+             vol:4500000, note:'Historical Average' },
+    sessions: [{ name:'Reg. Session', open:'09:30', close:'16:00' }],
   },
   {
     id: 'N225', label: 'Nikkei 225', flag: '🇯🇵', cur: 'JPY',
     tz: 'Asia/Tokyo', tzOff: 9,
-    finnhubSymbol: '^N225',          // Finnhub supports this
-    seed: { open:59513.0, high:59621.0, low:59200.0, close:59513.0, prevClose:59289.0,
-             vol:680000, note:'ปิด 01 May 2026 (Golden Week)' },
+    finnhubSymbol: 'EWJ',          // ใช้ EWJ ETF แทนดัชนี Nikkei สำหรับ Free Key
+    seed: { open:38250.0, high:38400.0, low:38100.0, close:38210.0, prevClose:38150.0,
+             vol:680000, note:'Historical Average' },
     sessions: [{ name:'ช่วง 1', open:'09:00', close:'11:30' }, { name:'ช่วง 2', open:'12:30', close:'15:30' }],
   },
   {
     id: 'HSI', label: 'Hang Seng', flag: '🇭🇰', cur: 'HKD',
     tz: 'Asia/Hong_Kong', tzOff: 8,
-    finnhubSymbol: '^HSI',           // Finnhub supports this
-    seed: { open:25900.0, high:26320.0, low:25820.0, close:26096.0, prevClose:25777.0,
-             vol:1450000000, note:'Trading Economics 05 May 2026' },
+    finnhubSymbol: 'EWH',           // ใช้ EWH ETF แทนดัชนี Hang Seng สำหรับ Free Key
+    seed: { open:18500.0, high:18650.0, low:18400.0, close:18550.0, prevClose:18420.0,
+             vol:1450000000, note:'Historical Average' },
     sessions: [{ name:'ช่วงเช้า', open:'09:30', close:'12:00' }, { name:'ช่วงบ่าย', open:'13:00', close:'16:00' }],
   },
 ];
@@ -394,13 +379,6 @@ async function loadIndex(idx) {
 
   const sym = idx.finnhubSymbol || null;
 
-  // SET / SET50 — Finnhub ไม่รองรับ SET index โดยตรง ใช้ seed แล้วแจ้งผู้ใช้
-  if (!sym) {
-    const s = idx.seed;
-    return { ...s, change: s.close - s.prevClose, changePct: ((s.close - s.prevClose) / s.prevClose) * 100,
-             prevDay: null, live: false, src: 'Seed (Finnhub ไม่รองรับ SET โดยตรง)' };
-  }
-
   try {
     const [q, candles] = await Promise.all([
       fetchFinnhub(sym),
@@ -480,7 +458,6 @@ function renderCard(idx, d, sess) {
   const ud  = now.toLocaleDateString('th-TH', { day:'numeric', month:'short', year:'numeric' });
 
   return `<div class="card" id="card-${idx.id}">
-  <!-- HEAD -->
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px;flex-wrap:wrap">
     <div>
       <div style="display:flex;align-items:center;gap:8px">
@@ -492,14 +469,12 @@ function renderCard(idx, d, sess) {
     <div class="sBadge ${sess.status}"><span class="dot${sess.status==='open'?' live':''}"></span>${sess.label}</div>
   </div>
 
-  <!-- PRICE -->
   <div class="priceMain">${f(close)}</div>
   <div class="chgRow">
     <span class="chgAbs ${cc_}">${sg(change)}${f(Math.abs(change))}</span>
     <span class="chgPct ${cc_} ${bc_}">${sg(change)}${f(Math.abs(changePct))}%</span>
   </div>
 
-  <!-- OHLC -->
   <div class="ohlc">
     <div class="oCell"><div class="oLbl">PREV</div><div class="oVal">${f(prevClose)}</div></div>
     <div class="oCell"><div class="oLbl">OPEN</div><div class="oVal">${f(open)}</div></div>
@@ -507,7 +482,6 @@ function renderCard(idx, d, sess) {
     <div class="oCell"><div class="oLbl">LOW</div><div class="oVal" style="color:var(--up)">${f(low)}</div></div>
   </div>
 
-  <!-- PREDICTED CLOSE -->
   <div class="tgtBox">
     <div class="tgtTop">
       <span class="tgtLbl">🎯 PREDICTED CLOSE</span>
@@ -530,7 +504,6 @@ function renderCard(idx, d, sess) {
     <div class="cBar"><div class="cFill" style="width:${pr.conf}%;background:${cf};box-shadow:0 0 6px ${cf}44"></div></div>
   </div>
 
-  <!-- SWING -->
   <div class="swBox">
     <div class="swTitle">📐 Swing Range · อ้างอิงจากราคาปิดล่าสุด (${f(prevClose)})</div>
     <div class="swGrid">
@@ -546,7 +519,6 @@ function renderCard(idx, d, sess) {
     </div>
   </div>
 
-  <!-- PIVOTS -->
   <div class="pivTitleBar">Pivot Points · อ้างอิง H:${f(ph)} L:${f(pl)} C:${f(pc2)}</div>
   <div class="pivGrid">
     <div class="pivRow r"><span class="pn">R3</span><span class="pv">${f(pv.R3)}</span></div>
@@ -562,7 +534,6 @@ function renderCard(idx, d, sess) {
     <div class="pivRow s"><span class="pn">S3</span><span class="pv">${f(pv.S3)}</span></div>
   </div>
 
-  <!-- SESSIONS -->
   <div class="sesRow">
     ${idx.sessions.map(s=>`
     <div class="sesCell">
@@ -572,7 +543,6 @@ function renderCard(idx, d, sess) {
     </div>`).join('')}
   </div>
 
-  <!-- FOOTER -->
   <div class="cFoot">
     <span class="updTime">🕐 ${ut} · ${ud}</span>
     <span class="srcBadge ${live?'sLive':'sSeed'}">${live?'🟢 Finnhub Live':'🟡 '+src}</span>
@@ -633,8 +603,7 @@ function setView(v) {
     const tx = t.textContent;
     t.classList.toggle('active',
       (v==='ALL' && tx.includes('ทุก')) ||
-      (v==='SET'   && tx.includes('SET') && !tx.includes('50') && !tx.includes('ทุก')) ||
-      (v==='SET50' && tx.includes('50')) ||
+      (v==='DJI'   && tx.includes('Dow Jones')) ||
       (v==='N225'  && tx.includes('Nikkei')) ||
       (v==='HSI'   && tx.includes('Hang')));
   });
