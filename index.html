@@ -183,7 +183,7 @@ header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap
 
 <div class="disc">
   ⚠ ข้อมูลเพื่อการศึกษาเท่านั้น · ไม่ใช่คำแนะนำการลงทุน<br>
-  Live: Yahoo Finance (Synced with Nikkei/HSI Official) · Seed data: SET.or.th (05-06 May 2026)<br>
+  Live: Yahoo Finance (via High-Speed Proxy) · Seed data: SET.or.th (05-06 May 2026)<br>
   Pivot = Classic Formula · Predicted Close = OHLC Weighted Model · Auto-refresh 5 min
 </div>
 </div>
@@ -202,7 +202,7 @@ const INDICES=[
       note:'SET.or.th 05 May 2026'
     },
     sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:30'},{name:'ช่วงบ่าย',open:'14:00',close:'17:00'}],
-    codes:['^SET.BK','SET='],
+    codes:['^SET.BK'],
   },
   {
     id:'SET50',label:'SET50',flag:'🇹🇭',cur:'THB',
@@ -279,53 +279,40 @@ function getSession(idx){
   return{status:'closed',label:'ตลาดปิดแล้ว',t};
 }
 
-/* ══ FETCH DATA LOGIC (ROBUST VERSION) ══ */
+/* ══ FETCH DATA LOGIC ══ */
 const PROXIES = [
   u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`,
-  u => `https://thingproxy.freeboard.io/fetch/${u}`,
-  u => `https://corsproxy.io/?${encodeURIComponent(u)}`
+  u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(u)}`
 ];
 
 async function tryYahoo(sym){
   const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
   
   for(const px of PROXIES){
-    try{
-      const r = await fetch(px(url), { signal: AbortSignal.timeout(6000) });
-      if(!r.ok) continue;
-      
-      let j;
-      const text = await r.text();
-      try {
-        const parsed = JSON.parse(text);
-        j = parsed.contents ? JSON.parse(parsed.contents) : parsed;
-      } catch(e) { continue; }
+    try {
+      const response = await fetch(px(url));
+      const text = await response.text();
+      let j = JSON.parse(text);
+      if(j.contents) j = JSON.parse(j.contents); // สำหรับ AllOrigins
 
-      const res=j?.chart?.result?.[0];
-      if(!res) continue;
+      const res = j.chart.result[0];
+      const m = res.meta, q = res.indicators.quote[0];
+      const ts = res.timestamp;
       
-      const m=res.meta, q=res.indicators?.quote?.[0];
-      if(!q?.close?.length) continue;
+      const valid = ts.map((t,i)=>({h:q.high[i],l:q.low[i],o:q.open[i],c:q.close[i]}))
+                      .filter(d=>d.c!=null && d.h!=null);
       
-      const days=res.timestamp.map((t,i)=>({
-        o:q.open[i], h:q.high[i], l:q.low[i], c:q.close[i], v:q.volume?.[i]
-      })).filter(d=>d.c!=null && d.h!=null);
+      const td = valid[valid.length-1], pd = valid[valid.length-2];
+      const live = m.regularMarketPrice || td.c;
+      const pc = m.chartPreviousClose || pd.c;
       
-      if(days.length < 2) continue;
-      
-      const td=days[days.length-1], pd=days[days.length-2];
-      const live=m.regularMarketPrice || td.c;
-      const pc=m.chartPreviousClose || pd.c;
-      
-      return{
-        open:td.o||live, high:td.h||live, low:td.l||live, close:live,
-        prevClose:pc, vol:td.v||0,
+      return {
+        open:td.o, high:td.h, low:td.l, close:live, prevClose:pc,
         change:live-pc, changePct:((live-pc)/pc)*100,
-        prevDay:{open:pd.o, high:pd.h, low:pd.l, close:pd.c},
-        live:true, src:'Market Sync (Official Source)'
+        prevDay:pd, live:true, src:'Yahoo Finance'
       };
-    } catch(err) { continue; }
+    } catch(e) { continue; }
   }
   return null;
 }
@@ -349,15 +336,11 @@ function predict(d) {
   const { open: o, high: h, low: l, close: c, prevClose: pc } = d;
   const rng = h - l;
   const mid = (h + l) / 2;
-  const vola = rng / pc; 
-  const weight = vola > 0.015 ? 0.45 : 0.65; 
+  const weight = (rng / pc) > 0.015 ? 0.45 : 0.65; 
   const pred = (c * weight) + (mid * (1 - weight));
-  const sw1 = rng * 0.382, sw2 = rng * 0.618, sw3 = rng * 1.000; 
   const pos = rng > 0 ? (c - l) / rng : 0.5;
-  const stability = 1 - Math.abs(pos - 0.5) * 2; 
-  const conf = Math.max(48, Math.min(88, Math.round(55 + (stability * 33))));
-
-  return { pred, lo: pred - sw1, hi: pred + sw1, chg: pred - pc, chgPct: ((pred - pc) / pc) * 100, sw1, sw2, sw3, conf };
+  const conf = Math.max(48, Math.min(88, Math.round(55 + ((1 - Math.abs(pos - 0.5) * 2) * 33))));
+  return { pred, lo: pred-(rng*0.382), hi: pred+(rng*0.382), chg: pred-pc, chgPct:((pred-pc)/pc)*100, sw1:rng*0.382, sw2:rng*0.618, sw3:rng, conf };
 }
 
 const f=(v,d=2)=>typeof v==='number'?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
@@ -398,38 +381,30 @@ function render(idx,d,sess){
   </div>
   <div class="tgtBox">
     <div class="tgtTop"><span class="tgtLbl">🎯 PREDICTED CLOSE</span><span style="font-size:8px;font-family:var(--mono);font-weight:700;color:${cf}">Conf. ${pr.conf}%</span></div>
-    <div class="tgtPriceRow"><span class="tgtPrice">${f(pr.pred)}</span><span class="tgtChg ${pc_}">${pr.chg>=0?'+':''}${f(pr.chg)} (${pr.chg>=0?'+':''}${f(pr.chgPct)}%)</span></div>
+    <div class="tgtPriceRow"><span class="tgtPrice">${f(pr.pred)}</span><span class="tgtChg ${pc_}">${pr.chg>=0?'+':''}${f(pr.chgPct)}%</span></div>
     <div class="rangeRow"><span class="rLbl">RANGE</span><span class="rLo">▼ ${f(pr.lo)}</span><span style="color:var(--muted);font-family:var(--mono);font-size:9px">↔</span><span class="rHi">▲ ${f(pr.hi)}</span></div>
     <div class="confRow"><span class="confLbl">CONFIDENCE SCORE</span><span class="confVal" style="color:${cf}">${pr.conf}%</span></div>
     <div class="confBar"><div class="confFill" style="width:${pr.conf}%;background:${cf};box-shadow:0 0 6px ${cf}55"></div></div>
   </div>
   <div class="swBox">
-    <div class="swTitle">📐 Swing Range · อ้างอิงราคาปิดล่าสุด (${f(prevClose)})</div>
+    <div class="swTitle">📐 Swing Range · อ้างอิงราคาล่าสุด</div>
     <div class="swGrid">
-      ${[{n:'Swing ±1',r:pr.sw1},{n:'Swing ±2',r:pr.sw2},{n:'Swing ±3',r:pr.sw3}].map(s=>`
-      <div class="swCell">
-        <div class="swN">${s.n}</div>
-        <div class="swH">▲ ${f(prevClose+s.r)}</div>
-        <div class="swHp">+${f(s.r/prevClose*100,2)}%</div>
-        <div class="swDiv"></div>
-        <div class="swL">▼ ${f(prevClose-s.r)}</div>
-        <div class="swLp">-${f(s.r/prevClose*100,2)}%</div>
-      </div>`).join('')}
+      <div class="swCell"><div class="swN">Swing ±1 (0.382)</div><div class="swH">▲ ${f(close+pr.sw1)}</div><div class="swDiv"></div><div class="swL">▼ ${f(close-pr.sw1)}</div></div>
+      <div class="swCell"><div class="swN">Swing ±2 (0.618)</div><div class="swH">▲ ${f(close+pr.sw2)}</div><div class="swDiv"></div><div class="swL">▼ ${f(close-pr.sw2)}</div></div>
+      <div class="swCell"><div class="swN">Swing ±3 (1.000)</div><div class="swH">▲ ${f(close+pr.sw3)}</div><div class="swDiv"></div><div class="swL">▼ ${f(close-pr.sw3)}</div></div>
     </div>
   </div>
-  <div class="pivTitle">Pivot Points · อ้างอิง H:${f(ph)} L:${f(pl)} C:${f(pc2)}</div>
+  <div class="pivTitle">Pivot Points · Classic Formula</div>
   <div class="pivGrid">
     <div class="pivRow r"><span class="pn">R3</span><span class="pv">${f(pv.R3)}</span></div>
-    <div class="pivRow r"><span class="pn">Fib R2</span><span class="pv">${f(pv.FR2)}</span></div>
     <div class="pivRow r"><span class="pn">R2</span><span class="pv">${f(pv.R2)}</span></div>
     <div class="pivRow r"><span class="pn">R1</span><span class="pv">${f(pv.R1)}</span></div>
     <div class="pivRow p"><span class="pn">PIVOT (P)</span><span class="pv">${f(pv.P)}</span></div>
     <div class="pivRow s"><span class="pn">S1</span><span class="pv">${f(pv.S1)}</span></div>
-    <div class="pivRow s"><span class="pn">Fib S2</span><span class="pv">${f(pv.FS2)}</span></div>
     <div class="pivRow s"><span class="pn">S2</span><span class="pv">${f(pv.S2)}</span></div>
     <div class="pivRow s"><span class="pn">S3</span><span class="pv">${f(pv.S3)}</span></div>
   </div>
-  <div class="sesRow">${idx.sessions.map(s=>`<div class="sesN">${s.name}</div><div class="sesT">${s.open} – ${s.close}</div><div class="sesTz">${idx.tz}</div>`).join('')}</div>
+  <div class="sesRow">${idx.sessions.map(s=>`<div class="sesN">${s.name}</div><div class="sesT">${s.open} – ${s.close}</div>`).join('')}</div>
   <div class="cFoot"><span class="updTime">🕐 ${ut} · ${ud}</span><span class="srcBadge ${live?'sLive':'sAi'}">${live?'🟢 Official Sync':'🟡 '+src}</span></div>
 </div>`;
 }
@@ -442,12 +417,13 @@ async function fetchAll(){
   const wrap=document.getElementById('cards');
   wrap.innerHTML=vis.map(idx=>`<div class="card" id="card-${idx.id}"><div class="loader"><div class="spinEl"></div><span class="loaderTxt">${idx.flag} ${idx.label}...</span></div></div>`).join('');
   document.getElementById('statusBar').textContent='Connecting to Market API...';
-  let live=0;
+  
   await Promise.all(vis.map(async idx=>{
-    const d=await loadIndex(idx); cache[idx.id]=d; if(d.live) live++;
+    const d=await loadIndex(idx); cache[idx.id]=d;
     const el=document.getElementById(`card-${idx.id}`); if(el) el.outerHTML=render(idx,d,getSession(idx));
   }));
-  document.getElementById('statusBar').textContent=`Updated ${new Date().toLocaleTimeString('th-TH')} · Data: ${live}/${vis.length} Live`;
+  
+  document.getElementById('statusBar').textContent=`Updated ${new Date().toLocaleTimeString('th-TH')}`;
   busy=false; btn.disabled=false; ic.style.cssText='';
 }
 
@@ -457,9 +433,7 @@ function setView(v){
     const tx=t.textContent;
     t.classList.toggle('active',(v==='ALL'&&tx.includes('ทุก'))||(v==='SET'&&tx.includes('SET')&&!tx.includes('50')&&!tx.includes('ทุก'))||(v==='SET50'&&tx.includes('50'))||(v==='N225'&&tx.includes('Nikkei'))||(v==='HSI'&&tx.includes('Hang')));
   });
-  const vis=view==='ALL'?INDICES:INDICES.filter(x=>x.id===view);
-  if(vis.every(i=>cache[i.id])) document.getElementById('cards').innerHTML=vis.map(idx=>render(idx,cache[idx.id],getSession(idx))).join('');
-  else fetchAll();
+  fetchAll();
 }
 
 setInterval(fetchAll,300000);
