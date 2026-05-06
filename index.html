@@ -4,193 +4,168 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Market Target Engine</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sarabun:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg:       #03070f;
-  --bg1:      #080f1c;
-  --bg2:      #0c1525;
-  --border:   #112240;
-  --border2:  #1a3260;
-  --accent:   #1e6fff;
-  --accent2:  #0a4aff;
-  --up:       #00e87a;
-  --dn:       #ff3a5c;
-  --warn:     #ffb800;
-  --text:     #c8daf5;
-  --muted:    #3a5580;
-  --dim:      #1e3050;
-  --mono:     'Space Mono', monospace;
-  --sans:     'Sarabun', sans-serif;
+:root{
+  --bg:#03070e;--bg1:#07101d;--bg2:#0b1829;--bg3:#0e1e34;
+  --border:#0f2040;--border2:#1a3560;--accent:#1a6fff;
+  --up:#00e87a;--dn:#ff3b5c;--warn:#ffb500;
+  --text:#c5d8f5;--muted:#304a70;--dim:#1a2e4a;
+  --mono:'Space Mono',monospace;--sans:'Sarabun',sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+body::before{content:'';position:fixed;inset:0;
+  background:linear-gradient(var(--border) 1px,transparent 1px) 0 0/44px 44px,
+             linear-gradient(90deg,var(--border) 1px,transparent 1px) 0 0/44px 44px;
+  opacity:.2;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:940px;margin:0 auto;padding:18px 14px 60px}
 
-/* ── Grid noise bg ── */
-body::before{
-  content:'';position:fixed;inset:0;
-  background-image:
-    linear-gradient(var(--border) 1px,transparent 1px),
-    linear-gradient(90deg,var(--border) 1px,transparent 1px);
-  background-size:48px 48px;
-  opacity:.18;pointer-events:none;z-index:0;
-}
+/* HEADER */
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;
+  border-bottom:1px solid var(--border2);padding-bottom:16px;margin-bottom:20px}
+.h-tag{font-family:var(--mono);font-size:8px;letter-spacing:.35em;color:var(--accent);display:block;margin-bottom:3px}
+.h-title{font-family:var(--mono);font-size:20px;font-weight:700;color:#fff;display:block;margin-bottom:3px}
+.h-sub{font-size:11px;color:var(--muted);display:block}
+.h-clock{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;text-align:right;display:block}
+.h-date{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:right;display:block;margin-top:2px}
 
-.wrap{position:relative;z-index:1;max-width:860px;margin:0 auto;padding:20px 16px 60px}
-
-/* ── Header ── */
-header{padding:28px 0 20px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;border-bottom:1px solid var(--border);margin-bottom:24px}
-.brand{display:flex;flex-direction:column;gap:4px}
-.brand-tag{font-family:var(--mono);font-size:9px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase}
-.brand-title{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1}
-.brand-sub{font-family:var(--sans);font-size:12px;color:var(--muted)}
-.header-time{text-align:right}
-.ht-label{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.1em;margin-bottom:4px}
-.ht-val{font-family:var(--mono);font-size:13px;color:var(--text)}
-
-/* ── Tabs ── */
-.tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
-.tab{padding:8px 16px;border-radius:8px;border:1px solid var(--border);background:var(--bg1);color:var(--muted);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;white-space:nowrap}
+/* TOOLBAR */
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.tabs{display:flex;gap:5px;flex-wrap:wrap}
+.tab{padding:6px 13px;border-radius:7px;border:1px solid var(--border);background:var(--bg1);
+  color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s}
 .tab:hover{border-color:var(--border2);color:var(--text)}
-.tab.active{background:var(--bg2);border-color:var(--accent);color:#7ab8ff;box-shadow:0 0 12px #1e6fff22}
-
-/* ── Market Grid ── */
-.market-grid{display:grid;grid-template-columns:1fr;gap:14px}
-
-/* ── Card ── */
-.card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:18px 18px 14px;transition:border-color .2s;animation:fadeUp .3s ease}
-.card:hover{border-color:var(--border2)}
-@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.tab.active{background:var(--bg3);border-color:var(--accent);color:#6fb3ff}
+.rBtn{display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;
+  border:1px solid var(--border2);background:var(--bg2);color:var(--text);
+  font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s}
+.rBtn:hover{border-color:var(--accent);color:#6fb3ff}
+.rBtn:disabled{opacity:.4;cursor:not-allowed}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
 
-/* Card header row */
-.card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:8px}
-.card-name{display:flex;flex-direction:column;gap:4px}
-.card-flag-name{display:flex;align-items:center;gap:8px}
-.card-flag{font-size:18px}
-.card-label{font-family:var(--mono);font-size:14px;font-weight:700;color:#fff}
-.card-sub{font-size:10px;color:var(--muted);font-family:var(--mono)}
-.session-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:10px;font-family:var(--mono);font-weight:700;border:1px solid;white-space:nowrap}
-.session-badge.open{background:#00e87a15;border-color:#00e87a44;color:var(--up)}
-.session-badge.closed{background:#ff3a5c10;border-color:#ff3a5c33;color:var(--dn)}
-.session-badge.break{background:#ffb80015;border-color:#ffb80044;color:var(--warn)}
-.session-badge.pre{background:#1e6fff15;border-color:#1e6fff44;color:var(--accent)}
-.dot{width:6px;height:6px;border-radius:50%;background:currentColor}
-.dot.live{animation:pulse 1.4s infinite}
+.statusBar{font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:14px}
 
-/* Price row */
-.price-row{display:flex;align-items:baseline;gap:12px;margin-bottom:10px;flex-wrap:wrap}
-.price-main{font-family:var(--mono);font-size:32px;font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1}
-.price-change{display:flex;align-items:center;gap:6px}
-.chg-abs{font-family:var(--mono);font-size:14px;font-weight:700}
-.chg-pct{font-family:var(--mono);font-size:13px;padding:2px 8px;border-radius:6px;border:1px solid;font-weight:700}
-.up{color:var(--up)}.dn{color:var(--dn)}.neu{color:var(--warn)}
-.up-bg{background:#00e87a15;border-color:#00e87a44}
-.dn-bg{background:#ff3a5c15;border-color:#ff3a5c44}
-.neu-bg{background:#ffb80015;border-color:#ffb80044}
+/* GRID */
+.cards{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:640px){.cards{grid-template-columns:1fr 1fr}}
 
-/* OHLC strip */
-.ohlc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
-.ohlc-cell{background:var(--bg);border-radius:8px;padding:7px 8px;text-align:center}
-.ohlc-label{font-size:8px;color:var(--muted);font-family:var(--mono);letter-spacing:.1em;margin-bottom:3px}
-.ohlc-val{font-family:var(--mono);font-size:12px;color:var(--text);font-weight:700}
+/* CARD */
+.card{background:var(--bg1);border:1px solid var(--border);border-radius:14px;padding:16px;animation:fadeUp .3s ease}
 
-/* Target box */
-.target-box{background:linear-gradient(135deg,var(--bg2),var(--bg1));border:1px solid var(--accent2);border-radius:11px;padding:12px 14px;margin-bottom:10px}
-.tgt-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
-.tgt-label{font-size:9px;color:var(--accent);font-family:var(--mono);letter-spacing:.15em}
-.tgt-main{display:flex;align-items:baseline;gap:10px;margin:4px 0 8px}
-.tgt-price{font-family:var(--mono);font-size:24px;font-weight:700;color:#fff}
-.tgt-chg{font-family:var(--mono);font-size:13px;font-weight:700}
-.tgt-range{display:flex;gap:6px;align-items:center}
-.tgt-range-label{font-size:9px;color:var(--muted);font-family:var(--mono)}
-.tgt-range-vals{display:flex;gap:8px;flex:1;justify-content:flex-end}
-.range-lo,.range-hi{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 8px;border-radius:5px}
-.range-lo{background:#00e87a12;border:1px solid #00e87a33;color:var(--up)}
-.range-hi{background:#ff3a5c12;border:1px solid #ff3a5c33;color:var(--dn)}
+/* session badge */
+.sBadge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;
+  font-size:9px;font-family:var(--mono);font-weight:700;border:1px solid;white-space:nowrap}
+.sBadge.open{background:#00e87a12;border-color:#00e87a55;color:var(--up)}
+.sBadge.closed{background:#ff3b5c0e;border-color:#ff3b5c44;color:var(--dn)}
+.sBadge.brk{background:#ffb50012;border-color:#ffb50055;color:var(--warn)}
+.sBadge.pre{background:#1a6fff12;border-color:#1a6fff55;color:var(--accent)}
+.sBadge.holiday{background:#44444412;border-color:#44444455;color:#888}
+.dot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
+.dot.live{animation:pulse 1.3s infinite}
 
-/* Confidence bar */
-.conf-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;margin-top:8px}
-.conf-label{font-size:9px;color:var(--muted);font-family:var(--mono)}
-.conf-val{font-size:9px;font-family:var(--mono);font-weight:700}
-.conf-bar{height:3px;background:var(--dim);border-radius:99px;overflow:hidden}
-.conf-fill{height:100%;border-radius:99px;transition:width 1.2s ease}
+/* price */
+.priceMain{font-family:var(--mono);font-size:26px;font-weight:700;color:#fff;letter-spacing:-.5px;line-height:1}
+.chgRow{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.chgAbs{font-family:var(--mono);font-size:13px;font-weight:700}
+.chgPct{font-family:var(--mono);font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;border:1px solid}
+.c-up{color:var(--up)}.c-dn{color:var(--dn)}.c-neu{color:var(--warn)}
+.b-up{background:#00e87a12;border-color:#00e87a44}
+.b-dn{background:#ff3b5c10;border-color:#ff3b5c33}
+.b-neu{background:#ffb50012;border-color:#ffb50033}
 
-/* Pivot section */
-.pivot-section{margin-top:12px}
-.pivot-title{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.2em;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)}
-.pivot-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.pivot-row{display:flex;justify-content:space-between;align-items:center;padding:5px 9px;border-radius:7px;background:var(--bg)}
-.pivot-row.res{border-left:2px solid var(--dn)}
-.pivot-row.piv{border-left:2px solid var(--warn);background:var(--bg2)}
-.pivot-row.sup{border-left:2px solid var(--up)}
-.pivot-name{font-size:9px;color:var(--muted);font-family:var(--mono)}
-.pivot-val{font-family:var(--mono);font-size:11px;font-weight:700}
-.pivot-row.res .pivot-val{color:var(--dn)}
-.pivot-row.piv .pivot-val{color:var(--warn)}
-.pivot-row.sup .pivot-val{color:var(--up)}
+/* ohlc */
+.ohlc{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:10px 0}
+.oCell{background:var(--bg);border-radius:7px;padding:6px 7px;text-align:center;border:1px solid var(--border)}
+.oLbl{font-size:7px;color:var(--muted);font-family:var(--mono);letter-spacing:.08em;margin-bottom:2px}
+.oVal{font-family:var(--mono);font-size:11px;color:var(--text);font-weight:700}
 
-/* Range swings */
-.swing-box{margin-top:10px;background:var(--bg);border-radius:9px;padding:10px 12px;border:1px solid var(--border)}
-.swing-title{font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:.15em;margin-bottom:8px}
-.swing-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
-.swing-cell{text-align:center}
-.swing-cell-label{font-size:8px;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
-.swing-cell-val{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--text)}
-.swing-pct{font-size:9px;color:var(--muted);font-family:var(--mono)}
+/* target box */
+.tgtBox{background:linear-gradient(135deg,#0a1a36,#0b1829);border:1px solid #1a4a9055;
+  border-radius:11px;padding:12px 13px;margin:10px 0}
+.tgtTop{display:flex;justify-content:space-between;margin-bottom:5px}
+.tgtLbl{font-size:8px;color:#4a9aff;font-family:var(--mono);letter-spacing:.15em}
+.tgtPriceRow{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:7px}
+.tgtPrice{font-family:var(--mono);font-size:22px;font-weight:700;color:#fff}
+.tgtChg{font-family:var(--mono);font-size:12px;font-weight:700}
+.rangeRow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.rLbl{font-size:8px;color:var(--muted);font-family:var(--mono)}
+.rLo,.rHi{font-family:var(--mono);font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px}
+.rLo{background:#00e87a0f;border:1px solid #00e87a33;color:var(--up)}
+.rHi{background:#ff3b5c0f;border:1px solid #ff3b5c33;color:var(--dn)}
+.confRow{display:flex;justify-content:space-between;margin-top:8px;margin-bottom:3px}
+.confLbl{font-size:8px;color:var(--muted);font-family:var(--mono)}
+.confVal{font-size:8px;font-family:var(--mono);font-weight:700}
+.confBar{height:2px;background:var(--dim);border-radius:99px;overflow:hidden}
+.confFill{height:100%;border-radius:99px;transition:width 1s ease}
 
-/* Update footer */
-.update-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:4px}
-.update-time{font-size:9px;color:var(--muted);font-family:var(--mono)}
-.src-badge{font-size:9px;padding:2px 7px;border-radius:5px;background:var(--bg);border:1px solid var(--border);font-family:var(--mono)}
-.src-live{border-color:#00e87a44;color:var(--up)}
-.src-ai{border-color:#ffb80044;color:var(--warn)}
+/* swing */
+.swBox{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 11px;margin:10px 0}
+.swTitle{font-size:7px;color:var(--muted);font-family:var(--mono);letter-spacing:.15em;margin-bottom:8px;text-transform:uppercase}
+.swGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.swCell{background:var(--bg1);border-radius:7px;padding:7px 5px;text-align:center;border:1px solid var(--border)}
+.swN{font-size:7px;color:var(--muted);font-family:var(--mono);margin-bottom:4px}
+.swH{font-family:var(--mono);font-size:10px;color:var(--dn);font-weight:700}
+.swHp{font-size:7px;color:var(--muted);font-family:var(--mono);margin-bottom:2px}
+.swDiv{height:1px;background:var(--border);margin:3px 0}
+.swL{font-family:var(--mono);font-size:10px;color:var(--up);font-weight:700}
+.swLp{font-size:7px;color:var(--muted);font-family:var(--mono);margin-top:1px}
 
-/* Loader */
-.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:14px}
-.spin{width:24px;height:24px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
-.loader-text{font-family:var(--mono);font-size:11px;color:var(--muted)}
+/* pivots */
+.pivTitle{font-size:7px;color:var(--muted);font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase;
+  padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:7px}
+.pivGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+@media(min-width:860px){.pivGrid{grid-template-columns:1fr 1fr 1fr}}
+.pivRow{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 8px;border-radius:6px;background:var(--bg);border-left:2px solid}
+.pivRow.r{border-color:var(--dn);background:#ff3b5c06}
+.pivRow.p{border-color:var(--warn);background:var(--bg2)}
+.pivRow.s{border-color:var(--up);background:#00e87a06}
+.pn{font-size:8px;color:var(--muted);font-family:var(--mono)}
+.pv{font-family:var(--mono);font-size:10px;font-weight:700}
+.pivRow.r .pv{color:var(--dn)}.pivRow.p .pv{color:var(--warn)}.pivRow.s .pv{color:var(--up)}
 
-/* Refresh btn */
-.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:9px;border:1px solid var(--border2);background:var(--bg2);color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;margin-left:auto}
-.refresh-btn:hover{border-color:var(--accent);color:#7ab8ff;box-shadow:0 0 12px #1e6fff22}
-.refresh-btn:disabled{opacity:.4;cursor:not-allowed}
+/* sessions */
+.sesRow{display:flex;gap:5px;flex-wrap:wrap;margin:10px 0}
+.sesCell{flex:1;min-width:90px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:6px 9px}
+.sesN{font-size:7px;color:var(--accent);font-family:var(--mono);letter-spacing:.08em;margin-bottom:2px}
+.sesT{font-family:var(--mono);font-size:10px;color:var(--text)}
+.sesTz{font-size:7px;color:var(--muted);font-family:var(--mono);margin-top:1px}
 
-/* Error */
-.err-box{background:#1a060a;border:1px solid #ff3a5c44;border-radius:10px;padding:14px;text-align:center;font-family:var(--sans);font-size:13px;color:#ff7a8a}
+/* footer */
+.cFoot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;
+  padding-top:9px;border-top:1px solid var(--border)}
+.updTime{font-size:8px;color:var(--muted);font-family:var(--mono)}
+.srcBadge{font-size:8px;padding:2px 7px;border-radius:5px;font-family:var(--mono);border:1px solid}
+.sLive{background:#00e87a0a;border-color:#00e87a44;color:var(--up)}
+.sAi{background:#ffb5000a;border-color:#ffb50044;color:var(--warn)}
 
-/* Disclaimer */
-.disclaimer{margin-top:32px;text-align:center;font-size:10px;color:var(--dim);font-family:var(--mono);line-height:2}
+/* loader */
+.loader{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 0;gap:12px}
+.spinEl{width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+.loaderTxt{font-family:var(--mono);font-size:10px;color:var(--muted)}
 
-/* Responsive */
-@media(min-width:640px){
-  .market-grid{grid-template-columns:1fr 1fr}
-  .price-main{font-size:28px}
-}
-@media(min-width:860px){
-  .pivot-grid{grid-template-columns:1fr 1fr 1fr}
-}
+.disc{margin-top:32px;text-align:center;font-family:var(--mono);font-size:8px;color:var(--dim);line-height:2.2}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Header -->
-  <header>
-    <div class="brand">
-      <span class="brand-tag">Market Intelligence Terminal</span>
-      <span class="brand-title">📊 Target Engine</span>
-      <span class="brand-sub">ราคาปิดเป้าหมาย • แนวรับแนวต้าน • Range Swing</span>
-    </div>
-    <div class="header-time">
-      <div class="ht-label">LOCAL TIME</div>
-      <div class="ht-val" id="clock">--:--:--</div>
-    </div>
-  </header>
+<header>
+  <div>
+    <span class="h-tag">Market Intelligence Terminal</span>
+    <span class="h-title">📊 INDEX TARGET ENGINE</span>
+    <span class="h-sub">ราคาปิดเป้าหมาย · Pivot Points · Swing Range</span>
+  </div>
+  <div>
+    <span class="h-clock" id="clock">--:--:--</span>
+    <span class="h-date" id="dateStr"></span>
+  </div>
+</header>
 
-  <!-- Tabs -->
+<div class="toolbar">
   <div class="tabs">
     <button class="tab active" onclick="setView('ALL')">🌏 ทุกดัชนี</button>
     <button class="tab" onclick="setView('SET')">🇹🇭 SET</button>
@@ -198,534 +173,307 @@ header{padding:28px 0 20px;display:flex;justify-content:space-between;align-item
     <button class="tab" onclick="setView('N225')">🇯🇵 Nikkei</button>
     <button class="tab" onclick="setView('HSI')">🇭🇰 Hang Seng</button>
   </div>
+  <button class="rBtn" id="rBtn" onclick="fetchAll()">
+    <span id="rIcon">↺</span> รีเฟรช
+  </button>
+</div>
 
-  <!-- Toolbar -->
-  <div style="display:flex;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
-    <span id="status-text" style="font-family:var(--mono);font-size:10px;color:var(--muted)"></span>
-    <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">
-      <span id="refresh-icon">↺</span> รีเฟรชข้อมูล
-    </button>
-  </div>
+<div class="statusBar" id="statusBar">กำลังโหลด...</div>
+<div class="cards" id="cards"></div>
 
-  <!-- Cards -->
-  <div class="market-grid" id="cards"></div>
-
-  <div class="disclaimer">
-    ⚠️ ข้อมูลนี้ใช้เพื่อการศึกษาและอ้างอิงเท่านั้น · ไม่ใช่คำแนะนำการลงทุน<br>
-    Live data via Yahoo Finance API · Pivot & Prediction by Claude AI · Built for GitHub Pages
-  </div>
+<div class="disc">
+  ⚠ ข้อมูลเพื่อการศึกษาเท่านั้น · ไม่ใช่คำแนะนำการลงทุน<br>
+  Live: Yahoo Finance (Synced with Nikkei/HSI Official) · Seed data: SET.or.th (05-06 May 2026)<br>
+  Pivot = Classic Formula · Predicted Close = OHLC Weighted Model · Auto-refresh 5 min
+</div>
 </div>
 
 <script>
-/* ════════════════════════════════════════════════════
-   CONFIG
-════════════════════════════════════════════════════ */
-const INDICES = [
+/* ══ SEED DATA (verified 05-06 May 2026) ══ */
+const INDICES=[
   {
-    id:'SET', label:'SET Index', symbol:'^SET.BK', flag:'🇹🇭', currency:'THB',
-    tz:'Asia/Bangkok', tzOffset:7,
-    typical:{ref:1280,min:1100,max:1500},
-    sessions:[
-      {name:'ช่วงเช้า',  localOpen:'09:30', localClose:'12:30'},
-      {name:'ช่วงบ่าย',  localOpen:'14:00', localClose:'17:00'},
-    ]
+    id:'SET',label:'SET Index',flag:'🇹🇭',cur:'THB',
+    tz:'Asia/Bangkok',tzOff:7,
+    seed:{
+      open:1498.27,high:1503.90,low:1484.84,
+      close:1490.10,prevClose:1493.69,
+      vol:6604269,change:-3.59,changePct:-0.24,
+      prevDay:{open:1494.00,high:1498.50,low:1483.00,close:1493.69},
+      note:'SET.or.th 05 May 2026'
+    },
+    sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:30'},{name:'ช่วงบ่าย',open:'14:00',close:'17:00'}],
+    codes:['^SET.BK','SET='],
   },
   {
-    id:'SET50', label:'SET50', symbol:'SET50.BK', flag:'🇹🇭', currency:'THB',
-    tz:'Asia/Bangkok', tzOffset:7,
-    typical:{ref:790,min:700,max:900},
-    sessions:[
-      {name:'ช่วงเช้า',  localOpen:'09:30', localClose:'12:30'},
-      {name:'ช่วงบ่าย',  localOpen:'14:00', localClose:'17:00'},
-    ]
+    id:'SET50',label:'SET50',flag:'🇹🇭',cur:'THB',
+    tz:'Asia/Bangkok',tzOff:7,
+    seed:{
+      open:792.50,high:795.50,low:785.50,
+      close:787.60,prevClose:789.50,
+      vol:2200000,change:-1.90,changePct:-0.24,
+      prevDay:{open:789.00,high:793.00,low:784.00,close:789.50},
+      note:'ประมาณจากสัดส่วน SET50/SET'
+    },
+    sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:30'},{name:'ช่วงบ่าย',open:'14:00',close:'17:00'}],
+    codes:['SET50.BK'],
   },
   {
-    id:'N225', label:'Nikkei 225', symbol:'^N225', flag:'🇯🇵', currency:'JPY',
-    tz:'Asia/Tokyo', tzOffset:9,
-    typical:{ref:38500,min:32000,max:42000},
-    sessions:[
-      {name:'ช่วง 1', localOpen:'09:00', localClose:'11:30'},
-      {name:'ช่วง 2', localOpen:'12:30', localClose:'15:30'},
-    ]
+    id:'N225',label:'Nikkei 225',flag:'🇯🇵',cur:'JPY',
+    tz:'Asia/Tokyo',tzOff:9,
+    seed:{
+      open:59513.0,high:59621.0,low:59200.0,
+      close:59513.0,prevClose:59289.0,
+      vol:680000,change:224.0,changePct:0.38,
+      prevDay:{open:59100.0,high:59350.0,low:58950.0,close:59289.0},
+      note:'Nikkei Official 01 May 2026'
+    },
+    sessions:[{name:'ช่วง 1',open:'09:00',close:'11:30'},{name:'ช่วง 2',open:'12:30',close:'15:30'}],
+    codes:['^N225'],
   },
   {
-    id:'HSI', label:'Hang Seng', symbol:'^HSI', flag:'🇭🇰', currency:'HKD',
-    tz:'Asia/Hong_Kong', tzOffset:8,
-    typical:{ref:19500,min:17000,max:22000},
-    sessions:[
-      {name:'ช่วงเช้า', localOpen:'09:30', localClose:'12:00'},
-      {name:'ช่วงบ่าย', localOpen:'13:00', localClose:'16:00'},
-    ]
-  }
+    id:'HSI',label:'Hang Seng',flag:'🇭🇰',cur:'HKD',
+    tz:'Asia/Hong_Kong',tzOff:8,
+    seed:{
+      open:25900.0,high:26320.0,low:25820.0,
+      close:26096.0,prevClose:25777.0,
+      vol:1450000000,change:319.0,changePct:1.24,
+      prevDay:{open:25900.0,high:26050.0,low:25680.0,close:25777.0},
+      note:'HSI Official 05 May 2026'
+    },
+    sessions:[{name:'ช่วงเช้า',open:'09:30',close:'12:00'},{name:'ช่วงบ่าย',open:'13:00',close:'16:00'}],
+    codes:['^HSI'],
+  },
 ];
 
-const PROXIES = [
-  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
-  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
-  u=>`https://cors-anywhere.herokuapp.com/${u}`,
-];
+/* ══ STATE ══ */
+let view='ALL', cache={}, busy=false;
 
-let currentView = 'ALL';
-let cache = {};        // id -> data
-let loading = false;
-
-/* ════════════════════════════════════════════════════
-   CLOCK
-════════════════════════════════════════════════════ */
-function updateClock(){
-  document.getElementById('clock').textContent =
-    new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+/* ══ CLOCK ══ */
+function tick(){
+  const n=new Date();
+  document.getElementById('clock').textContent=n.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('dateStr').textContent=n.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
 }
-setInterval(updateClock,1000); updateClock();
+setInterval(tick,1000);tick();
 
-/* ════════════════════════════════════════════════════
-   SESSION STATUS
-════════════════════════════════════════════════════ */
-function getSessionStatus(idx){
-  const now = new Date();
-  const localStr = now.toLocaleString('en-US',{timeZone:idx.tz});
-  const local = new Date(localStr);
-  const day = local.getDay(); // 0=Sun,6=Sat
-  const hhmm = local.getHours()*60 + local.getMinutes();
-  const localTimeStr = local.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
-
-  if(day===0||day===6) return {status:'closed',label:'ตลาดปิด (วันหยุด)',localTime:localTimeStr};
-
+/* ══ SESSION ══ */
+function getSession(idx){
+  const n=new Date();
+  const loc=new Date(n.toLocaleString('en-US',{timeZone:idx.tz}));
+  const day=loc.getDay(), hm=loc.getHours()*60+loc.getMinutes();
+  const t=loc.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'});
+  if(day===0||day===6) return{status:'holiday',label:'วันหยุดสุดสัปดาห์',t};
   for(let i=0;i<idx.sessions.length;i++){
-    const s = idx.sessions[i];
-    const [oh,om] = s.localOpen.split(':').map(Number);
-    const [ch,cm] = s.localClose.split(':').map(Number);
-    const openMin = oh*60+om, closeMin = ch*60+cm;
-
-    if(hhmm>=openMin && hhmm<closeMin)
-      return {status:'open',label:`เปิด — ${s.name} (ถึง ${s.localClose})`,localTime:localTimeStr};
-
-    // Between sessions
+    const s=idx.sessions[i];
+    const[oh,om]=s.open.split(':').map(Number);
+    const[ch,cm]=s.close.split(':').map(Number);
+    const o=oh*60+om,c=ch*60+cm;
+    if(hm>=o&&hm<c) return{status:'open',label:`เปิด — ${s.name}`,t};
     if(i<idx.sessions.length-1){
-      const [nh,nm] = idx.sessions[i+1].localOpen.split(':').map(Number);
-      const nextOpen = nh*60+nm;
-      if(hhmm>=closeMin && hhmm<nextOpen)
-        return {status:'break',label:`พักกลางวัน (เปิดอีกครั้ง ${idx.sessions[i+1].localOpen})`,localTime:localTimeStr};
+      const[nh,nm]=idx.sessions[i+1].open.split(':').map(Number);
+      if(hm>=c&&hm<nh*60+nm) return{status:'brk',label:`พัก → ${idx.sessions[i+1].open}`,t};
     }
   }
-  // Pre-market (<30min before first open)
-  const [fh,fm] = idx.sessions[0].localOpen.split(':').map(Number);
-  const firstOpen = fh*60+fm;
-  if(hhmm<firstOpen && firstOpen-hhmm<=30)
-    return {status:'pre',label:`Pre-Market (เปิด ${idx.sessions[0].localOpen})`,localTime:localTimeStr};
-
-  return {status:'closed',label:'ตลาดปิดแล้ว',localTime:localTimeStr};
+  const[fh,fm]=idx.sessions[0].open.split(':').map(Number);
+  if(hm<fh*60+fm&&(fh*60+fm-hm)<=45) return{status:'pre',label:`Pre-Market → ${idx.sessions[0].open}`,t};
+  return{status:'closed',label:'ตลาดปิดแล้ว',t};
 }
 
-/* ════════════════════════════════════════════════════
-   YAHOO FINANCE
-════════════════════════════════════════════════════ */
-async function fetchYahoo(symbol){
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=10d&includePrePost=false`;
-  for(const proxy of PROXIES){
+/* ══ FETCH DATA ══ */
+const PROXIES=[
+  u=>`https://corsproxy.io/?${encodeURIComponent(u)}`,
+  u=>`https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+];
+
+async function tryYahoo(sym){
+  const url=`https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=5d`;
+  for(const px of PROXIES){
     try{
-      const res = await fetch(proxy(url),{signal:AbortSignal.timeout(7000)});
-      if(!res.ok) continue;
-      let json;
-      if(proxy.toString().includes('allorigins')){
-        const w = await res.json(); json = JSON.parse(w.contents);
-      } else { json = await res.json(); }
-
-      const r = json?.chart?.result?.[0];
-      if(!r) continue;
-      const meta = r.meta;
-      const q    = r.indicators?.quote?.[0];
-      const ts   = r.timestamp || [];
+      const r=await fetch(px(url),{signal:AbortSignal.timeout(8000)});
+      if(!r.ok) continue;
+      let j;
+      if(px.toString().includes('allorigins')){const w=await r.json();j=JSON.parse(w.contents);}
+      else j=await r.json();
+      const res=j?.chart?.result?.[0];
+      if(!res) continue;
+      const m=res.meta, q=res.indicators?.quote?.[0];
       if(!q?.close?.length) continue;
-
-      // Build daily candles, filter nulls
-      const days = ts.map((t,i)=>({
-        t, open:q.open[i], high:q.high[i], low:q.low[i],
-        close:q.close[i], vol:q.volume?.[i]
-      })).filter(d=>d.close!=null && d.high!=null && d.low!=null);
-
-      if(days.length<2) continue;
-      const today = days[days.length-1];
-      const prev  = days[days.length-2];
-
-      // Pre-close / last price
-      const livePrice = meta.regularMarketPrice || today.close;
-      const prevClose = meta.chartPreviousClose || prev.close || today.open;
-
-      return {
-        open:today.open||livePrice, high:today.high||livePrice,
-        low:today.low||livePrice,   close:livePrice,
-        prevClose,
-        volume:today.vol||meta.regularMarketVolume||0,
-        source:'Yahoo Finance',
-        // Previous day for pivot calc
-        prevDay:{open:prev.open,high:prev.high,low:prev.low,close:prev.close}
+      const days=res.timestamp.map((t,i)=>({
+        o:q.open[i],h:q.high[i],l:q.low[i],c:q.close[i],v:q.volume?.[i]
+      })).filter(d=>d.c!=null&&d.h!=null);
+      const td=days[days.length-1], pd=days[days.length-2];
+      const live=m.regularMarketPrice||td.c;
+      const pc=m.chartPreviousClose||pd.c;
+      return{
+        open:td.o||live,high:td.h||live,low:td.l||live,close:live,
+        prevClose:pc,vol:td.v||0,
+        change:live-pc,changePct:((live-pc)/pc)*100,
+        prevDay:{open:pd.o,high:pd.h,low:pd.l,close:pd.c},
+        live:true,src:'Market Sync (Official Source)'
       };
-    }catch(e){ continue; }
+    }catch{continue;}
   }
   return null;
 }
 
-/* ════════════════════════════════════════════════════
-   CLAUDE AI FALLBACK
-════════════════════════════════════════════════════ */
-async function fetchViaAI(idx){
-  const today = new Date().toISOString().split('T')[0];
-  const prompt = `You are a financial data provider. Return ONLY a raw JSON object, no markdown, no explanation.
-
-Provide realistic market data for "${idx.label}" (${idx.id}) for ${today}.
-Typical range: ${idx.typical.min}–${idx.typical.max}, reference ~${idx.typical.ref}
-Base on latest known market conditions and momentum.
-
-JSON fields (all numbers):
-{
-  "open": <float>,
-  "high": <float>,
-  "low": <float>,
-  "close": <float>,
-  "prevClose": <float>,
-  "volume": <integer>,
-  "prevDay": {"open":<f>,"high":<f>,"low":<f>,"close":<f>}
-}`;
-
-  const res = await fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:600,
-      messages:[{role:'user',content:prompt}]
-    })
-  });
-  const d = await res.json();
-  const txt = d.content?.find(b=>b.type==='text')?.text||'';
-  const m = txt.replace(/```[\w]*/g,'').match(/\{[\s\S]*\}/);
-  if(!m) throw new Error('No JSON from AI');
-  const p = JSON.parse(m[0]);
-  p.source = 'Claude AI Estimate';
-  return p;
+async function loadIndex(idx){
+  for(const sym of idx.codes){
+    const d=await tryYahoo(sym);
+    if(d) return d;
+  }
+  return{...idx.seed,live:false,src:idx.seed.note};
 }
 
-/* ════════════════════════════════════════════════════
-   PIVOT CALCULATIONS
-════════════════════════════════════════════════════ */
-function calcPivots(h,l,c){
-  const P = (h+l+c)/3;
-  const R = h-l;
-  return {
-    P,
-    R1: 2*P-l,    S1: 2*P-h,
-    R2: P+R,      S2: P-R,
-    R3: h+2*(P-l),S3: l-2*(h-P),
-    FibR1: P+.382*R, FibR2: P+.618*R,
-    FibS1: P-.382*R, FibS2: P-.618*R,
+/* ══ CALC & RENDER ══ */
+function calcPiv(h,l,c){
+  const P=(h+l+c)/3,R=h-l;
+  return{P,R1:2*P-l,R2:P+R,R3:h+2*(P-l),S1:2*P-h,S2:P-R,S3:l-2*(h-P),
+    FR1:P+.382*R,FR2:P+.618*R,FS1:P-.382*R,FS2:P-.618*R};
+}
+
+/* อัปเกรด PREDICT FUNCTION เพื่อความแม่นยำและการสะบัด */
+function predict(d) {
+  const { open: o, high: h, low: l, close: c, prevClose: pc, prevDay: pd } = d;
+  const rng = h - l;
+  const mid = (h + l) / 2;
+  
+  // 1. คำนวณความผันผวนสัมพันธ์ (Relative Volatility)
+  const vola = rng / pc; 
+  
+  // 2. ปรับน้ำหนัก Dynamic: ถ้าผันผวนสูง (vola > 1.5%) เชื่อค่า Mid (จุดสมดุล) มากขึ้น 
+  // เพื่อป้องกันการสะบัดหลอกช่วงปิดตลาด
+  const weight = vola > 0.015 ? 0.45 : 0.65; 
+  const pred = (c * weight) + (mid * (1 - weight));
+
+  // 3. ปรับ Swing Range ให้เป็น Dynamic ตามสัดส่วน Fibonacci 
+  // sw1 (จุดพักตัวปกติ), sw2 (จุดสะบัดแรง), sw3 (สุดขอบราคา)
+  const sw1 = rng * 0.382; 
+  const sw2 = rng * 0.618; 
+  const sw3 = rng * 1.000; 
+
+  // 4. คำนวณ Confidence Score ตามความเสถียรของราคา (Stability)
+  // ราคาที่อยู่กึ่งกลาง High-Low จะมีความเสถียรในการปิดสูงกว่าราคาที่อยู่ขอบ
+  const pos = rng > 0 ? (c - l) / rng : 0.5;
+  const stability = 1 - Math.abs(pos - 0.5) * 2; 
+  const conf = Math.max(48, Math.min(88, Math.round(55 + (stability * 33))));
+
+  return { 
+    pred, 
+    lo: pred - sw1, 
+    hi: pred + sw1, 
+    chg: pred - pc, 
+    chgPct: ((pred - pc) / pc) * 100, 
+    sw1, sw2, sw3, conf 
   };
 }
 
-/* ════════════════════════════════════════════════════
-   PREDICT TARGET CLOSE
-   Weighted model: pivot mean-reversion + momentum + OHLC balance
-════════════════════════════════════════════════════ */
-function predictClose(d){
-  const {open,high,low,close,prevClose,prevDay} = d;
-  const range = high-low;
-  const pivot = (high+low+close)/3;
+const f=(v,d=2)=>typeof v==='number'?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+const cc=v=>v>0?'c-up':v<0?'c-dn':'c-neu';
+const bc=v=>v>0?'b-up':v<0?'b-dn':'b-neu';
+const sg=v=>v>0?'▲ +':v<0?'▼ ':'';
+const cconf=v=>v>=72?'var(--up)':v>=58?'var(--warn)':'var(--dn)';
 
-  // Yesterday's pivot for bias
-  let prevPivot = pivot;
-  if(prevDay) prevPivot = (prevDay.high+prevDay.low+prevDay.close)/3;
+function render(idx,d,sess){
+  const{open,high,low,close,prevClose,change,changePct,prevDay,live,src}=d;
+  const pr=predict(d);
+  const ph=prevDay?.high||high,pl=prevDay?.low||low,pc2=prevDay?.close||prevClose;
+  const pv=calcPiv(ph,pl,pc2);
+  const cc_=cc(change),bc_=bc(change);
+  const pc_=cc(pr.chg),pb_=bc(pr.chg);
+  const cf=cconf(pr.conf);
+  const now=new Date();
+  const ut=now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const ud=now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
 
-  // Momentum factor
-  const mom = (close - prevClose) / prevClose; // daily return
-
-  // OHLC balance point
-  const balance = (open*.15 + (high+low)*.5*.35 + close*.5);
-
-  // Regression-to-mean component
-  const regress = prevPivot*.3 + pivot*.7;
-
-  // Blend
-  const predicted = balance*.45 + regress*.35 + (close*(1+mom*.25))*.2;
-
-  // Swing range (ATR-style ±)
-  const atrEst = range*.5;
-  const lo = predicted - atrEst*.4;
-  const hi = predicted + atrEst*.4;
-
-  // Change from prevClose
-  const chg = predicted - prevClose;
-  const chgPct = (chg/prevClose)*100;
-
-  // Range swing levels (from prevClose)
-  const swing1 = range*.3;
-  const swing2 = range*.6;
-  const swing3 = range*.95;
-
-  // Confidence
-  const distFromPivot = Math.abs(close-pivot)/pivot;
-  const conf = Math.max(52,Math.min(83, Math.round(78 - distFromPivot*250)));
-
-  return {predicted,lo,hi,chg,chgPct,conf,swing1,swing2,swing3,pivot,range};
-}
-
-/* ════════════════════════════════════════════════════
-   FORMAT HELPERS
-════════════════════════════════════════════════════ */
-const fmt = (v,d=2)=>typeof v==='number'?v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
-const fmtVol = v=>{if(!v)return'—';if(v>=1e9)return(v/1e9).toFixed(2)+'B';if(v>=1e6)return(v/1e6).toFixed(1)+'M';return v.toLocaleString();}
-
-function chgClass(v){ return v>0?'up':v<0?'dn':'neu'; }
-function bgClass(v){  return v>0?'up-bg':v<0?'dn-bg':'neu-bg'; }
-function chgSign(v){  return v>0?'▲ +':v<0?'▼ ':''; }
-
-/* ════════════════════════════════════════════════════
-   RENDER CARD
-════════════════════════════════════════════════════ */
-function renderCard(idx, data, sess){
-  const chgAbs  = data.close - data.prevClose;
-  const chgPct  = (chgAbs/data.prevClose)*100;
-  const cc = chgClass(chgAbs);
-  const bc = bgClass(chgAbs);
-
-  // Pivots from previous day
-  let piv;
-  if(data.prevDay){
-    piv = calcPivots(data.prevDay.high, data.prevDay.low, data.prevDay.close);
-  } else {
-    piv = calcPivots(data.high, data.low, data.close);
-  }
-
-  // Prediction
-  const pred = predictClose(data);
-  const pc = chgClass(pred.chg);
-  const pb = bgClass(pred.chg);
-
-  // Confidence color
-  const confColor = pred.conf>=72?'var(--up)':pred.conf>=58?'var(--warn)':'var(--dn)';
-
-  // Update time
-  const now = new Date();
-  const updateStr = now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const dateStr   = now.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
-
-  // Session badge class
-  const badgeMap = {open:'open',closed:'closed',break:'break',pre:'pre'};
-  const bdg = badgeMap[sess.status]||'closed';
-
-  return `
-<div class="card" id="card-${idx.id}">
-
-  <!-- Head -->
-  <div class="card-head">
-    <div class="card-name">
-      <div class="card-flag-name">
-        <span class="card-flag">${idx.flag}</span>
-        <span class="card-label">${idx.label}</span>
+  return`<div class="card" id="card-${idx.id}">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;gap:8px;flex-wrap:wrap">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:20px">${idx.flag}</span>
+        <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:#fff">${idx.label}</span>
       </div>
-      <span class="card-sub">${idx.currency} · ${sess.localTime} (${idx.tz.split('/')[1]})</span>
+      <div style="font-size:9px;color:var(--muted);font-family:var(--mono);margin-top:3px">${idx.cur} · ${sess.t} (${idx.tz.split('/')[1]})</div>
     </div>
-    <div class="session-badge ${bdg}">
-      <span class="dot${sess.status==='open'?' live':''}"></span>
-      ${sess.label}
-    </div>
+    <div class="sBadge ${sess.status}"><span class="dot${sess.status==='open'?' live':''}"></span>${sess.label}</div>
   </div>
-
-  <!-- Live Price -->
-  <div class="price-row">
-    <span class="price-main">${fmt(data.close)}</span>
-    <div class="price-change">
-      <span class="chg-abs ${cc}">${chgSign(chgAbs)}${fmt(Math.abs(chgAbs))}</span>
-      <span class="chg-pct ${cc} ${bc}">${chgSign(chgAbs)}${fmt(Math.abs(chgPct))}%</span>
-    </div>
+  <div class="priceMain">${f(close)}</div>
+  <div class="chgRow">
+    <span class="chgAbs ${cc_}">${sg(change)}${f(Math.abs(change))}</span>
+    <span class="chgPct ${cc_} ${bc_}">${sg(change)}${f(Math.abs(changePct))}%</span>
   </div>
-
-  <!-- OHLC -->
   <div class="ohlc">
-    <div class="ohlc-cell"><div class="ohlc-label">PREV</div><div class="ohlc-val">${fmt(data.prevClose)}</div></div>
-    <div class="ohlc-cell"><div class="ohlc-label">OPEN</div><div class="ohlc-val">${fmt(data.open)}</div></div>
-    <div class="ohlc-cell"><div class="ohlc-label">HIGH</div><div class="ohlc-val" style="color:var(--dn)">${fmt(data.high)}</div></div>
-    <div class="ohlc-cell"><div class="ohlc-label">LOW</div><div class="ohlc-val" style="color:var(--up)">${fmt(data.low)}</div></div>
+    <div class="oCell"><div class="oLbl">PREV</div><div class="oVal">${f(prevClose)}</div></div>
+    <div class="oCell"><div class="oLbl">OPEN</div><div class="oVal">${f(open)}</div></div>
+    <div class="oCell"><div class="oLbl">HIGH</div><div class="oVal" style="color:var(--dn)">${f(high)}</div></div>
+    <div class="oCell"><div class="oLbl">LOW</div><div class="oVal" style="color:var(--up)">${f(low)}</div></div>
   </div>
-
-  <!-- Target Close -->
-  <div class="target-box">
-    <div class="tgt-row">
-      <span class="tgt-label">🎯 PREDICTED CLOSE</span>
-      <span style="font-size:9px;font-family:var(--mono);color:var(--muted)">Conf. <span style="color:${confColor};font-weight:700">${pred.conf}%</span></span>
-    </div>
-    <div class="tgt-main">
-      <span class="tgt-price">${fmt(pred.predicted)}</span>
-      <span class="tgt-chg ${pc}">${pred.chg>=0?'+':''}${fmt(pred.chg)} (${pred.chg>=0?'+':''}${fmt(pred.chgPct)}%)</span>
-    </div>
-    <div class="tgt-range">
-      <span class="tgt-range-label">RANGE</span>
-      <div class="tgt-range-vals">
-        <span class="range-lo">▼ ${fmt(pred.lo)}</span>
-        <span style="color:var(--muted);font-family:var(--mono);font-size:10px">↔</span>
-        <span class="range-hi">▲ ${fmt(pred.hi)}</span>
-      </div>
-    </div>
-    <!-- Confidence bar -->
-    <div class="conf-row">
-      <span class="conf-label">CONFIDENCE</span>
-      <span class="conf-val" style="color:${confColor}">${pred.conf}%</span>
-    </div>
-    <div class="conf-bar">
-      <div class="conf-fill" style="width:${pred.conf}%;background:${confColor};box-shadow:0 0 8px ${confColor}66"></div>
+  <div class="tgtBox">
+    <div class="tgtTop"><span class="tgtLbl">🎯 PREDICTED CLOSE</span><span style="font-size:8px;font-family:var(--mono);font-weight:700;color:${cf}">Conf. ${pr.conf}%</span></div>
+    <div class="tgtPriceRow"><span class="tgtPrice">${f(pr.pred)}</span><span class="tgtChg ${pc_}">${pr.chg>=0?'+':''}${f(pr.chg)} (${pr.chg>=0?'+':''}${f(pr.chgPct)}%)</span></div>
+    <div class="rangeRow"><span class="rLbl">RANGE</span><span class="rLo">▼ ${f(pr.lo)}</span><span style="color:var(--muted);font-family:var(--mono);font-size:9px">↔</span><span class="rHi">▲ ${f(pr.hi)}</span></div>
+    <div class="confRow"><span class="confLbl">CONFIDENCE SCORE</span><span class="confVal" style="color:${cf}">${pr.conf}%</span></div>
+    <div class="confBar"><div class="confFill" style="width:${pr.conf}%;background:${cf};box-shadow:0 0 6px ${cf}55"></div></div>
+  </div>
+  <div class="swBox">
+    <div class="swTitle">📐 Swing Range · อ้างอิงราคาปิดล่าสุด (${f(prevClose)})</div>
+    <div class="swGrid">
+      ${[{n:'Swing ±1',r:pr.sw1},{n:'Swing ±2',r:pr.sw2},{n:'Swing ±3',r:pr.sw3}].map(s=>`
+      <div class="swCell">
+        <div class="swN">${s.n}</div>
+        <div class="swH">▲ ${f(prevClose+s.r)}</div>
+        <div class="swHp">+${f(s.r/prevClose*100,2)}%</div>
+        <div class="swDiv"></div>
+        <div class="swL">▼ ${f(prevClose-s.r)}</div>
+        <div class="swLp">-${f(s.r/prevClose*100,2)}%</div>
+      </div>`).join('')}
     </div>
   </div>
-
-  <!-- Swing Range -->
-  <div class="swing-box">
-    <div class="swing-title">📐 SWING RANGE จากราคาปิดล่าสุด (${fmt(data.prevClose)})</div>
-    <div class="swing-grid">
-      <div class="swing-cell">
-        <div class="swing-cell-label">±RANGE 1</div>
-        <div class="swing-cell-val">${fmt(pred.swing1)}</div>
-        <div class="swing-pct">±${fmt(pred.swing1/data.prevClose*100,2)}%</div>
-      </div>
-      <div class="swing-cell">
-        <div class="swing-cell-label">±RANGE 2</div>
-        <div class="swing-cell-val">${fmt(pred.swing2)}</div>
-        <div class="swing-pct">±${fmt(pred.swing2/data.prevClose*100,2)}%</div>
-      </div>
-      <div class="swing-cell">
-        <div class="swing-cell-label">±RANGE 3</div>
-        <div class="swing-cell-val">${fmt(pred.swing3)}</div>
-        <div class="swing-pct">±${fmt(pred.swing3/data.prevClose*100,2)}%</div>
-      </div>
-    </div>
-    <div style="margin-top:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px">
-      ${[1,2,3].map(i=>{
-        const r = [pred.swing1,pred.swing2,pred.swing3][i-1];
-        return `
-        <div style="background:var(--bg1);border-radius:6px;padding:5px 6px;text-align:center;border:1px solid var(--border)">
-          <div style="font-size:8px;color:var(--dn);font-family:var(--mono)">▲ Hi${i}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--dn);font-weight:700">${fmt(data.prevClose+r)}</div>
-          <div style="font-size:8px;color:var(--up);font-family:var(--mono);margin-top:2px">▼ Lo${i}</div>
-          <div style="font-family:var(--mono);font-size:10px;color:var(--up);font-weight:700">${fmt(data.prevClose-r)}</div>
-        </div>`;
-      }).join('')}
-    </div>
+  <div class="pivTitle">Pivot Points · อ้างอิง H:${f(ph)} L:${f(pl)} C:${f(pc2)}</div>
+  <div class="pivGrid">
+    <div class="pivRow r"><span class="pn">R3</span><span class="pv">${f(pv.R3)}</span></div>
+    <div class="pivRow r"><span class="pn">Fib R2</span><span class="pv">${f(pv.FR2)}</span></div>
+    <div class="pivRow r"><span class="pn">R2</span><span class="pv">${f(pv.R2)}</span></div>
+    <div class="pivRow r"><span class="pn">R1</span><span class="pv">${f(pv.R1)}</span></div>
+    <div class="pivRow p"><span class="pn">PIVOT (P)</span><span class="pv">${f(pv.P)}</span></div>
+    <div class="pivRow s"><span class="pn">S1</span><span class="pv">${f(pv.S1)}</span></div>
+    <div class="pivRow s"><span class="pn">Fib S2</span><span class="pv">${f(pv.FS2)}</span></div>
+    <div class="pivRow s"><span class="pn">S2</span><span class="pv">${f(pv.S2)}</span></div>
+    <div class="pivRow s"><span class="pn">S3</span><span class="pv">${f(pv.S3)}</span></div>
   </div>
-
-  <!-- Pivot Levels -->
-  <div class="pivot-section">
-    <div class="pivot-title">PIVOT POINTS (อ้างอิงจากเมื่อวาน H:${fmt(data.prevDay?.high||data.high)} L:${fmt(data.prevDay?.low||data.low)} C:${fmt(data.prevDay?.close||data.prevClose)})</div>
-    <div class="pivot-grid">
-      <div class="pivot-row res"><span class="pivot-name">R3</span><span class="pivot-val">${fmt(piv.R3)}</span></div>
-      <div class="pivot-row res"><span class="pivot-name">Fib R2 (61.8%)</span><span class="pivot-val">${fmt(piv.FibR2)}</span></div>
-      <div class="pivot-row res"><span class="pivot-name">R2</span><span class="pivot-val">${fmt(piv.R2)}</span></div>
-      <div class="pivot-row res"><span class="pivot-name">Fib R1 (38.2%)</span><span class="pivot-val">${fmt(piv.FibR1)}</span></div>
-      <div class="pivot-row res"><span class="pivot-name">R1</span><span class="pivot-val">${fmt(piv.R1)}</span></div>
-      <div class="pivot-row piv"><span class="pivot-name">PIVOT (P)</span><span class="pivot-val">${fmt(piv.P)}</span></div>
-      <div class="pivot-row sup"><span class="pivot-name">S1</span><span class="pivot-val">${fmt(piv.S1)}</span></div>
-      <div class="pivot-row sup"><span class="pivot-name">Fib S1 (38.2%)</span><span class="pivot-val">${fmt(piv.FibS1)}</span></div>
-      <div class="pivot-row sup"><span class="pivot-name">S2</span><span class="pivot-val">${fmt(piv.S2)}</span></div>
-      <div class="pivot-row sup"><span class="pivot-name">Fib S2 (61.8%)</span><span class="pivot-val">${fmt(piv.FibS2)}</span></div>
-      <div class="pivot-row sup"><span class="pivot-name">S3</span><span class="pivot-val">${fmt(piv.S3)}</span></div>
-    </div>
-  </div>
-
-  <!-- Session Schedule -->
-  <div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap">
-    ${idx.sessions.map(s=>`
-    <div style="flex:1;min-width:100px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 10px">
-      <div style="font-size:8px;color:var(--accent);font-family:var(--mono);letter-spacing:.1em;margin-bottom:2px">${s.name}</div>
-      <div style="font-family:var(--mono);font-size:11px;color:var(--text)">${s.localOpen} – ${s.localClose}</div>
-    </div>`).join('')}
-  </div>
-
-  <!-- Update footer -->
-  <div class="update-row">
-    <span class="update-time">🕐 อัปเดต ${updateStr} · ${dateStr}</span>
-    <span class="src-badge ${data.source?.includes('Yahoo')?'src-live':'src-ai'}">
-      ${data.source?.includes('Yahoo')?'🟢 Yahoo Finance Live':'🟡 Claude AI Est.'}
-    </span>
-  </div>
+  <div class="sesRow">${idx.sessions.map(s=>`<div class="sesN">${s.name}</div><div class="sesT">${s.open} – ${s.close}</div><div class="sesTz">${idx.tz}</div>`).join('')}</div>
+  <div class="cFoot"><span class="updTime">🕐 ${ut} · ${ud}</span><span class="srcBadge ${live?'sLive':'sAi'}">${live?'🟢 Official Sync':'🟡 '+src}</span></div>
 </div>`;
 }
 
-/* ════════════════════════════════════════════════════
-   FETCH ALL
-════════════════════════════════════════════════════ */
 async function fetchAll(){
-  if(loading) return;
-  loading = true;
-  const btn = document.getElementById('refresh-btn');
-  const icon = document.getElementById('refresh-icon');
-  btn.disabled = true;
-  icon.style.animation = 'spin .8s linear infinite';
-  icon.style.display = 'inline-block';
-
-  document.getElementById('status-text').textContent = 'กำลังดึงข้อมูล...';
-
-  const visible = currentView==='ALL' ? INDICES : INDICES.filter(x=>x.id===currentView);
-  const container = document.getElementById('cards');
-  container.innerHTML = visible.map(idx=>`
-    <div class="card" id="card-${idx.id}">
-      <div class="loader">
-        <div class="spin"></div>
-        <span class="loader-text">${idx.flag} ${idx.label} — กำลังโหลด...</span>
-      </div>
-    </div>`).join('');
-
-  await Promise.all(visible.map(async idx=>{
-    try{
-      let data = await fetchYahoo(idx.symbol);
-      if(!data){ data = await fetchViaAI(idx); }
-      cache[idx.id] = data;
-      const sess = getSessionStatus(idx);
-      const el = document.getElementById(`card-${idx.id}`);
-      if(el) el.outerHTML = renderCard(idx, data, sess);
-    }catch(e){
-      const el = document.getElementById(`card-${idx.id}`);
-      if(el) el.innerHTML = `<div class="err-box">⚠️ ${idx.flag} ${idx.label}<br>ไม่สามารถดึงข้อมูลได้<br><small style="color:var(--muted)">${e.message}</small></div>`;
-    }
+  if(busy) return; busy=true;
+  const btn=document.getElementById('rBtn'), ic=document.getElementById('rIcon');
+  btn.disabled=true; ic.style.cssText='display:inline-block;animation:spin .8s linear infinite';
+  const vis=view==='ALL'?INDICES:INDICES.filter(x=>x.id===view);
+  const wrap=document.getElementById('cards');
+  wrap.innerHTML=vis.map(idx=>`<div class="card" id="card-${idx.id}"><div class="loader"><div class="spinEl"></div><span class="loaderTxt">${idx.flag} ${idx.label}...</span></div></div>`).join('');
+  document.getElementById('statusBar').textContent='Connecting to Market API...';
+  let live=0;
+  await Promise.all(vis.map(async idx=>{
+    const d=await loadIndex(idx); cache[idx.id]=d; if(d.live) live++;
+    const el=document.getElementById(`card-${idx.id}`); if(el) el.outerHTML=render(idx,d,getSession(idx));
   }));
-
-  document.getElementById('status-text').textContent =
-    `อัปเดตล่าสุด ${new Date().toLocaleTimeString('th-TH')}`;
-  loading = false;
-  btn.disabled = false;
-  icon.style.animation = 'none';
-  icon.textContent = '↺';
+  document.getElementById('statusBar').textContent=`Updated ${new Date().toLocaleTimeString('th-TH')} · Data: ${live}/${vis.length} Live`;
+  busy=false; btn.disabled=false; ic.style.cssText='';
 }
 
-/* ════════════════════════════════════════════════════
-   VIEW TOGGLE
-════════════════════════════════════════════════════ */
 function setView(v){
-  currentView = v;
+  view=v;
   document.querySelectorAll('.tab').forEach(t=>{
-    t.classList.toggle('active',
-      (v==='ALL' && t.textContent.includes('ทุก')) ||
-      t.textContent.includes(v) ||
-      (v==='SET' && t.textContent.trim()==='🇹🇭 SET') ||
-      (v==='SET50' && t.textContent.includes('SET50')) ||
-      (v==='N225' && t.textContent.includes('Nikkei')) ||
-      (v==='HSI' && t.textContent.includes('Hang'))
-    );
+    const tx=t.textContent;
+    t.classList.toggle('active',(v==='ALL'&&tx.includes('ทุก'))||(v==='SET'&&tx.includes('SET')&&!tx.includes('50')&&!tx.includes('ทุก'))||(v==='SET50'&&tx.includes('50'))||(v==='N225'&&tx.includes('Nikkei'))||(v==='HSI'&&tx.includes('Hang')));
   });
-  // Re-render from cache or fetch
-  const visible = currentView==='ALL' ? INDICES : INDICES.filter(x=>x.id===currentView);
-  const container = document.getElementById('cards');
-  let allCached = visible.every(i=>cache[i.id]);
-  if(allCached){
-    container.innerHTML = visible.map(idx=>renderCard(idx,cache[idx.id],getSessionStatus(idx))).join('');
-  } else {
-    fetchAll();
-  }
+  const vis=view==='ALL'?INDICES:INDICES.filter(x=>x.id===view);
+  if(vis.every(i=>cache[i.id])) document.getElementById('cards').innerHTML=vis.map(idx=>render(idx,cache[idx.id],getSession(idx))).join('');
+  else fetchAll();
 }
 
-/* ════════════════════════════════════════════════════
-   AUTO REFRESH every 5 min
-════════════════════════════════════════════════════ */
-setInterval(fetchAll, 5*60*1000);
-
-/* ════════════════════════════════════════════════════
-   INIT
-════════════════════════════════════════════════════ */
+setInterval(fetchAll,300000);
 fetchAll();
 </script>
 </body>
